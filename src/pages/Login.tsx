@@ -299,6 +299,11 @@ export default function Login() {
       fail("请输入用户名和密码");
       return;
     }
+    // 登录前必须同意隐私协议
+    if (mode === "login" && !privacyAgreed) {
+      fail("请先阅读并同意《隐私协议》");
+      return;
+    }
 
     if (mode === "register") {
       if (!/^1[3-9]\d{9}$/.test(cleanPhone)) {
@@ -328,10 +333,13 @@ export default function Login() {
       if (mode === "login") {
         loginAttemptRef.current = true;
 
-        await login({
-          username: cleanUsername,
-          password,
-        });
+         await login(
+           {
+             username: cleanUsername,
+             password,
+           },
+           keepLoggedIn
+         );
 
         // 不在这里直接 navigate，
         // 先展示登录成功弹窗。

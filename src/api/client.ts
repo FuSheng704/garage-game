@@ -1,13 +1,15 @@
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL
   ?.trim()
   .replace(/\/$/, "");
 
 const ACCESS_TOKEN_KEY = "access_token";
 const TOKEN_TYPE_KEY = "token_type";
+const REMEMBER_LOGIN_KEY = "remember_login";
 
 /**
  * 当任何接口返回 401 时，
- * 用这个事件通知 AuthContext 登录状态已经失效。
+ * 通知 AuthContext 登录状态已经失效。
  */
 export const AUTH_UNAUTHORIZED_EVENT =
   "auth:unauthorized";
@@ -33,21 +35,91 @@ export class ApiError extends Error {
 }
 
 /**
+ * ================================
+ * Token 管理
+ * ================================
+ *
+ * remember = true：
+ *   localStorage，保持登录
+ *
+ * remember = false：
+ *   sessionStorage，当前标签页会话
+ */
+
+/**
+ * 清除所有登录凭证。
+ *
+ * 同时清理两种存储，防止旧 Token
+ * 在切换登录方式时继续生效。
+ */
+export function clearAuthToken() {
+  localStorage.removeItem(
+    ACCESS_TOKEN_KEY
+  );
+
+  localStorage.removeItem(
+    TOKEN_TYPE_KEY
+  );
+
+  localStorage.removeItem(
+    REMEMBER_LOGIN_KEY
+  );
+
+  sessionStorage.removeItem(
+    ACCESS_TOKEN_KEY
+  );
+
+  sessionStorage.removeItem(
+    TOKEN_TYPE_KEY
+  );
+}
+
+/**
  * 保存 Token
  */
 export function setAuthToken(
   accessToken: string,
-  tokenType = "Bearer"
+  tokenType = "Bearer",
+  remember = false
 ) {
-  localStorage.setItem(
+  // 清除之前的登录状态
+  clearAuthToken();
+
+  // 根据用户是否勾选保持登录，选择存储方式
+  const storage = remember
+    ? localStorage
+    : sessionStorage;
+
+  storage.setItem(
     ACCESS_TOKEN_KEY,
     accessToken
   );
 
-  localStorage.setItem(
+  storage.setItem(
     TOKEN_TYPE_KEY,
     tokenType || "Bearer"
   );
+
+  if (remember) {
+    localStorage.setItem(
+      REMEMBER_LOGIN_KEY,
+      "1"
+    );
+  }
+}
+
+/**
+ * 获取当前登录使用的存储位置
+ */
+function getAuthStorage(): Storage {
+  const remember =
+    localStorage.getItem(
+      REMEMBER_LOGIN_KEY
+    ) === "1";
+
+  return remember
+    ? localStorage
+    : sessionStorage;
 }
 
 /**
@@ -56,7 +128,7 @@ export function setAuthToken(
 export function getAccessToken():
   | string
   | null {
-  return localStorage.getItem(
+  return getAuthStorage().getItem(
     ACCESS_TOKEN_KEY
   );
 }
@@ -66,7 +138,7 @@ export function getAccessToken():
  */
 export function getTokenType(): string {
   return (
-    localStorage.getItem(
+    getAuthStorage().getItem(
       TOKEN_TYPE_KEY
     ) || "Bearer"
   );
@@ -78,19 +150,6 @@ export function getTokenType(): string {
 export function hasAuthToken(): boolean {
   return Boolean(
     getAccessToken()
-  );
-}
-
-/**
- * 清除登录信息
- */
-export function clearAuthToken() {
-  localStorage.removeItem(
-    ACCESS_TOKEN_KEY
-  );
-
-  localStorage.removeItem(
-    TOKEN_TYPE_KEY
   );
 }
 
@@ -113,6 +172,12 @@ export function getAuthorizationHeader():
   return `${getTokenType()} ${token}`;
 }
 
+/**
+ * ================================
+ * API 请求配置
+ * ================================
+ */
+
 type ResponseType =
   | "json"
   | "text"
@@ -134,7 +199,9 @@ export interface ApiRequestOptions
 }
 
 /**
+ * ================================
  * 从后端返回值中提取错误信息
+ * ================================
  */
 function extractErrorMessage(
   data: unknown
@@ -238,7 +305,9 @@ function extractErrorMessage(
 }
 
 /**
+ * ================================
  * 统一解析 Response
+ * ================================
  */
 async function parseResponse(
   response: Response,
@@ -320,7 +389,9 @@ async function parseResponse(
 }
 
 /**
+ * ================================
  * 全项目统一请求入口
+ * ================================
  */
 export async function apiRequest<T>(
   path: string,

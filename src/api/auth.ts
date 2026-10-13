@@ -58,7 +58,8 @@ export async function registerApi(
  * ================================
  */
 export async function loginApi(
-  params: LoginParams
+  params: LoginParams,
+  remember = false
 ): Promise<TokenResponse> {
   /**
    * FastAPI OAuth2PasswordRequestForm
@@ -125,7 +126,8 @@ export async function loginApi(
    */
   setAuthToken(
     data.access_token,
-    data.token_type || "Bearer"
+    data.token_type || "Bearer",
+    remember
   );
 
   return data;

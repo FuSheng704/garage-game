@@ -50,8 +50,9 @@ interface AuthContextValue {
    * 登录
    */
   login: (
-    params: LoginParams
-  ) => Promise<void>;
+  params: LoginParams,
+  remember?: boolean
+) => Promise<void>;
 
   /**
    * 注册
@@ -139,11 +140,12 @@ export function AuthProvider({
    * 登录
    */
   const login =
-    useCallback(
-      async (
-        params: LoginParams
-      ) => {
-        await loginApi(params);
+  useCallback(
+    async (
+      params: LoginParams,
+      remember = false
+    ) => {
+      await loginApi(params, remember);
 
         setIsAuthenticated(true);
 
