@@ -1,4 +1,9 @@
+
 @import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&display=swap");
+
+/* ========================================
+   一、原有登录 / 注册页面基础样式
+   ======================================== */
 
 .figma-auth-page,
 .figma-auth-page * {
@@ -37,13 +42,27 @@
 
 .figma-auth-card--register {
   height: 820px;
-  background: linear-gradient(118.757deg, #fff 10.714%, #f1f4fa 46.429%, #dde4f3 82.143%);
+  background: linear-gradient(
+    118.757deg,
+    #fff 10.714%,
+    #f1f4fa 46.429%,
+    #dde4f3 82.143%
+  );
 }
 
 .figma-auth-card--login {
   height: 640px;
-  background: linear-gradient(125.112deg, #fff 10.714%, #f1f4fa 46.429%, #dde4f3 82.143%);
+  background: linear-gradient(
+    125.112deg,
+    #fff 10.714%,
+    #f1f4fa 46.429%,
+    #dde4f3 82.143%
+  );
 }
+
+/* ========================================
+   二、Figma 装饰素材
+   ======================================== */
 
 .figma-auth-decor {
   position: absolute;
@@ -58,24 +77,143 @@
   object-fit: fill;
 }
 
-.figma-auth-paper { inset: 0; width: 600px; height: 100%; }
-.figma-auth-register-top-left { left: -8px; top: -12px; width: 114px; height: 114px; opacity: .5; }
-.figma-auth-register-flower { left: 145px; top: 9px; width: 147px; height: 147px; }
-.figma-auth-register-bottom-right { left: 414px; top: 598px; width: 222px; height: 222px; opacity: .5; }
-.figma-auth-register-bottom-left { left: 8px; top: 692px; width: 111px; height: 111px; opacity: .5; transform: rotate(9.56deg); }
-.figma-auth-register-arc { left: 7px; top: 630px; width: 86px; height: 174px; }
-.figma-auth-register-star1 { left: 367px; top: 118px; width: 114px; height: 38px; }
-.figma-auth-register-star2 { left: 474px; top: 112px; width: 44px; height: 42px; }
-.figma-auth-register-star3 { left: 501px; top: 142px; width: 75px; height: 180px; }
-.figma-auth-register-right-small { left: 487px; top: 151px; width: 90px; height: 81px; opacity: .5; transform: scaleX(-1); }
+.figma-auth-paper {
+  inset: 0;
+  width: 600px;
+  height: 100%;
+}
 
-.figma-auth-login-top-left { left: -4px; top: -10px; width: 114px; height: 114px; opacity: .5; }
-.figma-auth-login-flower { left: 144px; top: 9px; width: 147px; height: 147px; }
-.figma-auth-login-bottom-right { left: 413px; top: 423px; width: 222px; height: 222px; opacity: .5; }
-.figma-auth-login-bottom-left { left: 5px; top: 510px; width: 111px; height: 111px; opacity: .5; transform: rotate(9.56deg); }
-.figma-auth-login-arc { left: 7px; top: 450px; width: 86px; height: 174px; }
-.figma-auth-login-stars { left: 367px; top: 111px; width: 210px; height: 215px; }
-.figma-auth-login-right-small { left: 485px; top: 151px; width: 90px; height: 81px; opacity: .5; transform: scaleX(-1); }
+/* 注册页面装饰 */
+
+.figma-auth-register-top-left {
+  left: -8px;
+  top: -12px;
+  width: 114px;
+  height: 114px;
+  opacity: 0.5;
+}
+
+.figma-auth-register-flower {
+  left: 145px;
+  top: 9px;
+  width: 147px;
+  height: 147px;
+}
+
+.figma-auth-register-bottom-right {
+  left: 414px;
+  top: 598px;
+  width: 222px;
+  height: 222px;
+  opacity: 0.5;
+}
+
+.figma-auth-register-bottom-left {
+  left: 8px;
+  top: 692px;
+  width: 111px;
+  height: 111px;
+  opacity: 0.5;
+  transform: rotate(9.56deg);
+}
+
+.figma-auth-register-arc {
+  left: 7px;
+  top: 630px;
+  width: 86px;
+  height: 174px;
+}
+
+.figma-auth-register-star1 {
+  left: 367px;
+  top: 118px;
+  width: 114px;
+  height: 38px;
+}
+
+.figma-auth-register-star2 {
+  left: 474px;
+  top: 112px;
+  width: 44px;
+  height: 42px;
+}
+
+.figma-auth-register-star3 {
+  left: 501px;
+  top: 142px;
+  width: 75px;
+  height: 180px;
+}
+
+.figma-auth-register-right-small {
+  left: 487px;
+  top: 151px;
+  width: 90px;
+  height: 81px;
+  opacity: 0.5;
+  transform: scaleX(-1);
+}
+
+/* 登录页面装饰 */
+
+.figma-auth-login-top-left {
+  left: -4px;
+  top: -10px;
+  width: 114px;
+  height: 114px;
+  opacity: 0.5;
+}
+
+.figma-auth-login-flower {
+  left: 144px;
+  top: 9px;
+  width: 147px;
+  height: 147px;
+}
+
+.figma-auth-login-bottom-right {
+  left: 413px;
+  top: 423px;
+  width: 222px;
+  height: 222px;
+  opacity: 0.5;
+}
+
+.figma-auth-login-bottom-left {
+  left: 5px;
+  top: 510px;
+  width: 111px;
+  height: 111px;
+  opacity: 0.5;
+  transform: rotate(9.56deg);
+}
+
+.figma-auth-login-arc {
+  left: 7px;
+  top: 450px;
+  width: 86px;
+  height: 174px;
+}
+
+.figma-auth-login-stars {
+  left: 367px;
+  top: 111px;
+  width: 210px;
+  height: 215px;
+}
+
+.figma-auth-login-right-small {
+  left: 485px;
+  top: 151px;
+  width: 90px;
+  height: 81px;
+  opacity: 0.5;
+  transform: scaleX(-1);
+}
+
+/* ========================================
+   三、卡片边框与关闭按钮
+   ======================================== */
 
 .figma-auth-inner-border {
   position: absolute;
@@ -86,8 +224,14 @@
   border-radius: 24px;
   pointer-events: none;
 }
-.figma-auth-card--register .figma-auth-inner-border { height: 810px; }
-.figma-auth-card--login .figma-auth-inner-border { height: 630px; }
+
+.figma-auth-card--register .figma-auth-inner-border {
+  height: 810px;
+}
+
+.figma-auth-card--login .figma-auth-inner-border {
+  height: 630px;
+}
 
 .figma-auth-close {
   position: absolute;
@@ -105,7 +249,15 @@
   background: #f4f6fb;
   cursor: pointer;
 }
-.figma-auth-close img { width: 14px; height: 14px; }
+
+.figma-auth-close img {
+  width: 14px;
+  height: 14px;
+}
+
+/* ========================================
+   四、登录 / 注册标题
+   ======================================== */
 
 .figma-auth-heading {
   position: absolute;
@@ -120,6 +272,7 @@
   white-space: nowrap;
   overflow: hidden;
 }
+
 .figma-auth-heading h1 {
   flex: none;
   margin: 0;
@@ -130,14 +283,16 @@
   line-height: 84px;
   letter-spacing: 0;
 }
+
 .figma-auth-heading span {
   flex: none;
   color: #58698c;
   font-size: 12px;
   font-weight: 500;
   line-height: 20px;
-  letter-spacing: .96px;
+  letter-spacing: 0.96px;
 }
+
 .figma-auth-heading-rule {
   position: absolute;
   left: 233px;
@@ -146,6 +301,10 @@
   height: 1px;
   background: #c2cbe0;
 }
+
+/* ========================================
+   五、账号、密码等输入框
+   ======================================== */
 
 .figma-auth-fields {
   position: absolute;
@@ -170,6 +329,7 @@
   border-radius: 6px;
   background: #f4f6fb;
 }
+
 .figma-auth-field-icon {
   display: flex;
   width: 24px;
@@ -178,11 +338,33 @@
   align-items: center;
   justify-content: center;
 }
-.figma-auth-field-icon img { display: block; object-fit: contain; max-width: none; }
-.figma-auth-icon-user { width: 18px; height: 21px; }
-.figma-auth-icon-phone { width: 14px; height: 22px; }
-.figma-auth-icon-email { width: 22px; height: 18px; }
-.figma-auth-icon-lock { width: 18px; height: 24px; }
+
+.figma-auth-field-icon img {
+  display: block;
+  object-fit: contain;
+  max-width: none;
+}
+
+.figma-auth-icon-user {
+  width: 18px;
+  height: 21px;
+}
+
+.figma-auth-icon-phone {
+  width: 14px;
+  height: 22px;
+}
+
+.figma-auth-icon-email {
+  width: 22px;
+  height: 18px;
+}
+
+.figma-auth-icon-lock {
+  width: 18px;
+  height: 24px;
+}
+
 .figma-auth-field input {
   min-width: 0;
   height: 100%;
@@ -197,9 +379,20 @@
   font-weight: 400;
   line-height: 32px;
 }
-.figma-auth-field input::placeholder { color: #a5afc5; opacity: 1; }
-.figma-auth-field input:disabled { cursor: not-allowed; }
-.figma-auth-field:focus-within { outline: 1px solid #526cb3; }
+
+.figma-auth-field input::placeholder {
+  color: #a5afc5;
+  opacity: 1;
+}
+
+.figma-auth-field input:disabled {
+  cursor: not-allowed;
+}
+
+.figma-auth-field:focus-within {
+  outline: 1px solid #526cb3;
+}
+
 .figma-auth-eye {
   display: flex;
   width: 24px;
@@ -212,7 +405,15 @@
   background: transparent;
   cursor: pointer;
 }
-.figma-auth-eye img { width: 22px; height: 22px; }
+
+.figma-auth-eye img {
+  width: 22px;
+  height: 22px;
+}
+
+/* ========================================
+   六、复选框与协议
+   ======================================== */
 
 .figma-auth-checkbox-label {
   display: inline-flex;
@@ -225,6 +426,7 @@
   white-space: nowrap;
   cursor: pointer;
 }
+
 .figma-auth-checkbox-label input {
   position: relative;
   width: 22px;
@@ -237,6 +439,7 @@
   background: transparent;
   cursor: pointer;
 }
+
 .figma-auth-checkbox-label input:checked::after {
   position: absolute;
   top: 2px;
@@ -248,6 +451,7 @@
   content: "";
   transform: rotate(45deg);
 }
+
 .figma-auth-link {
   color: #526cb3;
   font-size: 16px;
@@ -257,6 +461,7 @@
   text-underline-offset: 2px;
   white-space: nowrap;
 }
+
 .figma-auth-keep-row,
 .figma-auth-agreement {
   position: absolute;
@@ -268,9 +473,23 @@
   align-items: center;
   gap: 12px;
 }
-.figma-auth-keep-row { top: 343px; justify-content: space-between; }
-.figma-auth-agreement--login { top: 468px; }
-.figma-auth-agreement--register { top: 550px; }
+
+.figma-auth-keep-row {
+  top: 343px;
+  justify-content: space-between;
+}
+
+.figma-auth-agreement--login {
+  top: 468px;
+}
+
+.figma-auth-agreement--register {
+  top: 550px;
+}
+
+/* ========================================
+   七、登录 / 注册主按钮
+   ======================================== */
 
 .figma-auth-primary {
   position: absolute;
@@ -285,8 +504,13 @@
   padding: 0;
   border: 0;
   border-radius: 6px;
-  background: linear-gradient(to bottom, #41507a, #243050 48%, #1e2840);
-  box-shadow: 0 4px 10px rgba(40, 57, 97, .22);
+  background: linear-gradient(
+    to bottom,
+    #41507a,
+    #243050 48%,
+    #1e2840
+  );
+  box-shadow: 0 4px 10px rgba(40, 57, 97, 0.22);
   color: #fff;
   font-family: "Noto Serif SC", serif;
   font-size: 16px;
@@ -294,9 +518,20 @@
   line-height: 24px;
   cursor: pointer;
 }
-.figma-auth-primary--login { top: 393px; }
-.figma-auth-primary--register { top: 602px; }
-.figma-auth-primary span { position: relative; z-index: 1; }
+
+.figma-auth-primary--login {
+  top: 393px;
+}
+
+.figma-auth-primary--register {
+  top: 602px;
+}
+
+.figma-auth-primary span {
+  position: relative;
+  z-index: 1;
+}
+
 .figma-auth-primary img {
   position: absolute;
   inset: 0;
@@ -305,7 +540,14 @@
   height: 60px;
   pointer-events: none;
 }
-.figma-auth-primary:disabled { cursor: wait; }
+
+.figma-auth-primary:disabled {
+  cursor: wait;
+}
+
+/* ========================================
+   八、底部切换登录 / 注册
+   ======================================== */
 
 .figma-auth-bottom-prompt {
   position: absolute;
@@ -323,9 +565,21 @@
   line-height: 24px;
   white-space: nowrap;
 }
-.figma-auth-bottom-prompt--login { top: 515px; }
-.figma-auth-bottom-prompt--register { top: 687px; }
-.figma-auth-line { width: 148px; height: 1px; flex: none; background: #c2cbe0; }
+
+.figma-auth-bottom-prompt--login {
+  top: 515px;
+}
+
+.figma-auth-bottom-prompt--register {
+  top: 687px;
+}
+
+.figma-auth-line {
+  width: 148px;
+  height: 1px;
+  flex: none;
+  background: #c2cbe0;
+}
 
 .figma-auth-secondary {
   position: absolute;
@@ -348,9 +602,23 @@
   line-height: 24px;
   cursor: pointer;
 }
-.figma-auth-secondary--login { top: 551px; }
-.figma-auth-secondary--register { top: 727px; }
-.figma-auth-secondary img { width: 8px; height: 16px; }
+
+.figma-auth-secondary--login {
+  top: 551px;
+}
+
+.figma-auth-secondary--register {
+  top: 727px;
+}
+
+.figma-auth-secondary img {
+  width: 8px;
+  height: 16px;
+}
+
+/* ========================================
+   九、原有表单信息提示
+   ======================================== */
 
 .figma-auth-message {
   position: absolute;
@@ -363,4 +631,191 @@
   font-size: 12px;
   line-height: 18px;
 }
-.figma-auth-message.is-error { color: #c23939; }
+
+.figma-auth-message.is-error {
+  color: #c23939;
+}
+
+/* ========================================
+   十、新增：登录成功 / 失败动态提示
+   对应 Figma 节点 1355:85、1355:96
+   基准尺寸：630 × 486
+   ======================================== */
+
+/* 全屏遮罩 */
+
+.figma-auth-result-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 16px;
+  background: #f3f4f6;
+}
+
+/* 缩放占位容器 */
+
+.figma-auth-result-stage {
+  position: relative;
+  flex: none;
+  margin: auto;
+}
+
+/* 弹窗主体 */
+
+.figma-auth-result-card {
+  position: relative;
+  width: 630px;
+  height: 486px;
+  overflow: hidden;
+  transform-origin: left top;
+  border: 1.5px solid #c0cde8;
+  border-radius: 36px;
+  background: #f5f7ff;
+  box-shadow: 0 22px 45px rgba(31, 43, 70, 0.20);
+  color: #202b4a;
+  font-family: "Noto Serif SC", serif;
+  text-align: center;
+}
+
+/* 成功与失败图标公共样式 */
+
+.figma-auth-result-icon {
+  position: absolute;
+  top: 39px;
+  left: 277px;
+  display: flex;
+  width: 74px;
+  height: 74px;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid;
+  border-radius: 50%;
+}
+
+/* 登录成功：蓝色圆形 */
+
+.figma-auth-result-card--success .figma-auth-result-icon {
+  border-color: #7390cd;
+  background: #e2ebff;
+  color: #4f72b6;
+}
+
+/* 登录失败：粉色圆形 */
+
+.figma-auth-result-card--failure .figma-auth-result-icon {
+  border-color: #bc8297;
+  background: #f8eaf0;
+  color: #ac627d;
+}
+
+/* 对勾 */
+
+.figma-auth-result-check {
+  display: block;
+  width: 36px;
+  height: 20px;
+  margin-top: -8px;
+  border-bottom: 4px solid currentColor;
+  border-left: 4px solid currentColor;
+  border-radius: 1px;
+  transform: rotate(-45deg);
+}
+
+/* 感叹号 */
+
+.figma-auth-result-exclamation {
+  display: block;
+  margin-top: -1px;
+  font-family: Arial, sans-serif;
+  font-size: 43px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* 登录成功 / 失败标题 */
+
+.figma-auth-result-title {
+  position: absolute;
+  top: 137px;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  color: #202b4a;
+  font-family: "Noto Serif SC", serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 54px;
+  text-align: center;
+}
+
+/* 提示描述 */
+
+.figma-auth-result-description {
+  position: absolute;
+  top: 230px;
+  left: 35px;
+  display: flex;
+  width: 560px;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  color: #202b4a;
+  font-family: "Noto Serif SC", serif;
+  font-size: 23px;
+  font-weight: 400;
+  line-height: 34px;
+  text-align: center;
+}
+
+/* 确认按钮 */
+
+.figma-auth-result-button {
+  position: absolute;
+  top: 306px;
+  left: 40px;
+  display: flex;
+  width: 548px;
+  height: 67px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: #283755;
+  color: #fff;
+  font-family: "Noto Serif SC", serif;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 34px;
+  cursor: pointer;
+}
+
+.figma-auth-result-button:hover {
+  background: #33466c;
+}
+
+.figma-auth-result-button:focus-visible {
+  outline: 3px solid #7995ce;
+  outline-offset: 3px;
+}
+
+/* 底部说明 */
+
+.figma-auth-result-footer {
+  position: absolute;
+  top: 394px;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  color: #6e84b0;
+  font-family: "Noto Serif SC", serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 30px;
+  text-align: center;
+}

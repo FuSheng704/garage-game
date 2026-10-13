@@ -1,9 +1,12 @@
-import { useEffect, useState, type FormEvent } from "react";
+
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import { ApiError } from "../api/client";
 import "./Login.css";
 
 type Mode = "login" | "register";
+type LoginResult = "success" | "failure" | null;
 
 type FieldProps = {
   icon: string;
@@ -42,6 +45,7 @@ function AuthField({
       <span className="figma-auth-field-icon" aria-hidden="true">
         <img src={asset(icon)} className={iconClass} alt="" />
       </span>
+
       <input
         aria-label={placeholder}
         type={effectiveType}
@@ -52,6 +56,7 @@ function AuthField({
         maxLength={maxLength}
         disabled={disabled}
       />
+
       {passwordToggle && (
         <button
           className="figma-auth-eye"
@@ -99,6 +104,88 @@ function FigmaDecorations({ mode }: { mode: Mode }) {
   );
 }
 
+type LoginResultDialogProps = {
+  result: Exclude<LoginResult, null>;
+  failureText: string;
+  scale: number;
+  onSuccessConfirm: () => void;
+  onFailureConfirm: () => void;
+};
+
+function LoginResultDialog({
+  result,
+  failureText,
+  scale,
+  onSuccessConfirm,
+  onFailureConfirm,
+}: LoginResultDialogProps) {
+  const success = result === "success";
+
+  return (
+    <div className="figma-auth-result-overlay">
+      <div
+        className="figma-auth-result-stage"
+        style={{
+          width: 630 * scale,
+          height: 486 * scale,
+        }}
+      >
+        <section
+          className={`figma-auth-result-card ${
+            success
+              ? "figma-auth-result-card--success"
+              : "figma-auth-result-card--failure"
+          }`}
+          style={{ transform: `scale(${scale})` }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="figma-auth-result-title"
+          aria-describedby="figma-auth-result-description"
+        >
+          <div className="figma-auth-result-icon" aria-hidden="true">
+            {success ? (
+              <span className="figma-auth-result-check" />
+            ) : (
+              <span className="figma-auth-result-exclamation">!</span>
+            )}
+          </div>
+
+          <h2
+            id="figma-auth-result-title"
+            className="figma-auth-result-title"
+          >
+            {success ? "登录成功" : "登录失败"}
+          </h2>
+
+          <p
+            id="figma-auth-result-description"
+            className="figma-auth-result-description"
+          >
+            {success
+              ? "欢迎回来，与你的故事继续。"
+              : failureText}
+          </p>
+
+          <button
+            type="button"
+            className="figma-auth-result-button"
+            onClick={success ? onSuccessConfirm : onFailureConfirm}
+            autoFocus
+          >
+            {success ? "知道了" : "返回修改"}
+          </button>
+
+          <p className="figma-auth-result-footer">
+            {success
+              ? "2 秒后自动收起"
+              : "保留已填内容，可直接返回修改"}
+          </p>
+        </section>
+      </div>
+    </div>
+  );
+}
+
 export default function Login() {
   const { login, register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -116,19 +203,61 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
-  const [viewportWidth, setViewportWidth] = useState(() =>
-    typeof window === "undefined" ? 600 : window.innerWidth,
+
+  // 新增：登录结果状态
+  const [loginResult, setLoginResult] = useState<LoginResult>(null);
+  const [failureText, setFailureText] = useState(
+    "账号或密码错误，请检查后重试。"
   );
 
+  // 防止 AuthContext 更新登录状态后立即跳转，
+  // 导致登录成功提示还没显示就消失。
+  const loginAttemptRef = useRef(false);
+
+  const [viewportSize, setViewportSize] = useState(() => ({
+    width: typeof window === "undefined" ? 600 : window.innerWidth,
+    height: typeof window === "undefined" ? 800 : window.innerHeight,
+  }));
+
+  const redirectPath =
+    (location.state as { from?: { pathname?: string } } | null)
+      ?.from?.pathname || "/";
+
+  // 已有登录态的用户仍然可以正常跳转；
+  // 本次登录过程中，等待成功弹窗展示完毕。
   useEffect(() => {
-    if (isAuthenticated) navigate("/", { replace: true });
-  }, [isAuthenticated, navigate]);
+    if (
+      isAuthenticated &&
+      !loginAttemptRef.current &&
+      loginResult !== "success"
+    ) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, loginResult, navigate]);
 
   useEffect(() => {
-    const handleResize = () => setViewportWidth(window.innerWidth);
+    const handleResize = () => {
+      setViewportSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // 登录成功后 2 秒自动跳转。
+  useEffect(() => {
+    if (loginResult !== "success") return;
+
+    const timer = window.setTimeout(() => {
+      loginAttemptRef.current = false;
+      navigate(redirectPath, { replace: true });
+    }, 2000);
+
+    return () => window.clearTimeout(timer);
+  }, [loginResult, navigate, redirectPath]);
 
   const switchMode = (next: Mode) => {
     setMode(next);
@@ -136,6 +265,7 @@ export default function Login() {
     setIsError(false);
     setPassword("");
     setConfirmPassword("");
+    setLoginResult(null);
   };
 
   const fail = (text: string) => {
@@ -143,8 +273,21 @@ export default function Login() {
     setMessage(text);
   };
 
+  const handleSuccessConfirm = () => {
+    loginAttemptRef.current = false;
+    navigate(redirectPath, { replace: true });
+  };
+
+  const handleFailureConfirm = () => {
+    // 只关闭提示，不清空 username 和 password。
+    setLoginResult(null);
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (loading) return;
+
     setMessage("");
     setIsError(false);
 
@@ -162,14 +305,17 @@ export default function Login() {
         fail("请输入正确的手机号");
         return;
       }
+
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
         fail("请输入正确的邮箱地址");
         return;
       }
+
       if (password !== confirmPassword) {
         fail("两次输入的密码不一致");
         return;
       }
+
       if (!userAgreed) {
         fail("请先同意用户协议");
         return;
@@ -177,22 +323,28 @@ export default function Login() {
     }
 
     setLoading(true);
+
     try {
       if (mode === "login") {
-        await login({ username: cleanUsername, password });
-        const from =
-          (location.state as { from?: { pathname?: string } } | null)?.from
-            ?.pathname || "/";
-        navigate(from, { replace: true });
+        loginAttemptRef.current = true;
+
+        await login({
+          username: cleanUsername,
+          password,
+        });
+
+        // 不在这里直接 navigate，
+        // 先展示登录成功弹窗。
+        setLoginResult("success");
       } else {
-        // 仅调整页面表现。后端注册接口尚未确认支持 phone/email，
-        // 因此此处保留原有 register 调用，避免擅自更改 API 协议。
-       await register({
-         username: username.trim(),
-         password,
-         phone: phone.trim(),
-         email: email.trim(),
-       });
+        // 保留现有后端注册接口的四个字段。
+        await register({
+          username: cleanUsername,
+          password,
+          phone: cleanPhone,
+          email: cleanEmail,
+        });
+
         switchMode("login");
         setPhone("");
         setEmail("");
@@ -200,20 +352,60 @@ export default function Login() {
         setMessage("注册成功，请登录");
       }
     } catch (error) {
-      fail(error instanceof Error ? error.message : "请求失败，请稍后重试");
+      if (mode === "login") {
+        loginAttemptRef.current = false;
+
+        // 只有账号密码类错误使用 Figma 固定文案；
+        // 网络错误等其他问题保留真实错误信息。
+        if (
+          error instanceof ApiError &&
+          (error.status === 400 || error.status === 401)
+        ) {
+          setFailureText("账号或密码错误，请检查后重试。");
+        } else {
+          setFailureText(
+            error instanceof Error
+              ? error.message
+              : "登录失败，请稍后重试。"
+          );
+        }
+
+        setLoginResult("failure");
+      } else {
+        fail(
+          error instanceof Error
+            ? error.message
+            : "请求失败，请稍后重试"
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const scale = Math.min(1, Math.max(0.1, (viewportWidth - 32) / 600));
+  // 原有登录注册卡片的等比缩放
+  const scale = Math.min(
+    1,
+    Math.max(0.1, (viewportSize.width - 32) / 600)
+  );
+
   const cardHeight = mode === "register" ? 820 : 640;
+
+  // 新增：结果弹窗同时根据宽度和高度等比缩放。
+  const resultScale = Math.min(
+    1,
+    Math.max(0.1, (viewportSize.width - 32) / 630),
+    Math.max(0.1, (viewportSize.height - 32) / 486)
+  );
 
   return (
     <main className="figma-auth-page">
       <div
         className="figma-auth-stage"
-        style={{ width: 600 * scale, height: cardHeight * scale }}
+        style={{
+          width: 600 * scale,
+          height: cardHeight * scale,
+        }}
       >
         <section
           className={`figma-auth-card figma-auth-card--${mode}`}
@@ -221,7 +413,11 @@ export default function Login() {
           aria-label={mode === "register" ? "注册" : "登录"}
         >
           <FigmaDecorations mode={mode} />
-          <div className="figma-auth-inner-border" aria-hidden="true" />
+
+          <div
+            className="figma-auth-inner-border"
+            aria-hidden="true"
+          />
 
           <button
             type="button"
@@ -229,30 +425,57 @@ export default function Login() {
             aria-label="关闭"
             onClick={() => navigate(-1)}
           >
-            <img src={asset(mode === "register" ? "register-close.svg" : "login-close.svg")} alt="" />
+            <img
+              src={asset(
+                mode === "register"
+                  ? "register-close.svg"
+                  : "login-close.svg"
+              )}
+              alt=""
+            />
           </button>
 
           <header className="figma-auth-heading">
             <h1>{mode === "register" ? "注册" : "登录"}</h1>
-            <span>{mode === "register" ? "R E G I S T E R" : "L O G I N"}</span>
+            <span>
+              {mode === "register"
+                ? "R E G I S T E R"
+                : "L O G I N"}
+            </span>
           </header>
-          <div className="figma-auth-heading-rule" aria-hidden="true" />
+
+          <div
+            className="figma-auth-heading-rule"
+            aria-hidden="true"
+          />
 
           {message && (
             <p
               role={isError ? "alert" : "status"}
-              className={`figma-auth-message ${isError ? "is-error" : ""}`}
+              className={`figma-auth-message ${
+                isError ? "is-error" : ""
+              }`}
             >
               {message}
             </p>
           )}
 
           <form onSubmit={handleSubmit} noValidate>
-            <div className={`figma-auth-fields figma-auth-fields--${mode}`}>
+            <div
+              className={`figma-auth-fields figma-auth-fields--${mode}`}
+            >
               <AuthField
-                icon={mode === "register" ? "register-user.svg" : "login-user.svg"}
+                icon={
+                  mode === "register"
+                    ? "register-user.svg"
+                    : "login-user.svg"
+                }
                 iconClass="figma-auth-icon-user"
-                placeholder={mode === "register" ? "请输入用户名" : "请输入账号"}
+                placeholder={
+                  mode === "register"
+                    ? "请输入用户名"
+                    : "请输入账号"
+                }
                 value={username}
                 onChange={setUsername}
                 autoComplete="username"
@@ -272,6 +495,7 @@ export default function Login() {
                     maxLength={11}
                     disabled={loading}
                   />
+
                   <AuthField
                     icon="register-email.svg"
                     iconClass="figma-auth-icon-email"
@@ -286,16 +510,28 @@ export default function Login() {
               )}
 
               <AuthField
-                icon={mode === "register" ? "register-lock.svg" : "login-lock.svg"}
+                icon={
+                  mode === "register"
+                    ? "register-lock.svg"
+                    : "login-lock.svg"
+                }
                 iconClass="figma-auth-icon-lock"
                 placeholder="请输入密码"
                 type="password"
                 value={password}
                 onChange={setPassword}
-                autoComplete={mode === "register" ? "new-password" : "current-password"}
+                autoComplete={
+                  mode === "register"
+                    ? "new-password"
+                    : "current-password"
+                }
                 disabled={loading}
                 passwordToggle
-                eyeIcon={mode === "register" ? "register-eye.svg" : "login-eye.svg"}
+                eyeIcon={
+                  mode === "register"
+                    ? "register-eye.svg"
+                    : "login-eye.svg"
+                }
               />
 
               {mode === "register" && (
@@ -319,19 +555,30 @@ export default function Login() {
                   <input
                     type="checkbox"
                     checked={keepLoggedIn}
-                    onChange={(event) => setKeepLoggedIn(event.target.checked)}
+                    onChange={(event) =>
+                      setKeepLoggedIn(event.target.checked)
+                    }
                   />
                   <span>保持登录状态</span>
                 </label>
-                <span className="figma-auth-link">忘记密码?</span>
+
+                <span className="figma-auth-link">
+                  忘记密码?
+                </span>
               </div>
             )}
 
-            <div className={`figma-auth-agreement figma-auth-agreement--${mode}`}>
+            <div
+              className={`figma-auth-agreement figma-auth-agreement--${mode}`}
+            >
               <label className="figma-auth-checkbox-label">
                 <input
                   type="checkbox"
-                  checked={mode === "register" ? userAgreed : privacyAgreed}
+                  checked={
+                    mode === "register"
+                      ? userAgreed
+                      : privacyAgreed
+                  }
                   onChange={(event) =>
                     mode === "register"
                       ? setUserAgreed(event.target.checked)
@@ -340,8 +587,11 @@ export default function Login() {
                 />
                 <span>我已阅读并同意</span>
               </label>
+
               <span className="figma-auth-link">
-                {mode === "register" ? "《用户协议》" : "《隐私协议》"}
+                {mode === "register"
+                  ? "《用户协议》"
+                  : "《隐私协议》"}
               </span>
             </div>
 
@@ -357,29 +607,68 @@ export default function Login() {
                     ? "完成注册"
                     : "登 录"}
               </span>
+
               <img
-                src={asset(mode === "register" ? "register-button-shine.svg" : "login-button-shine.svg")}
+                src={asset(
+                  mode === "register"
+                    ? "register-button-shine.svg"
+                    : "login-button-shine.svg"
+                )}
                 alt=""
                 aria-hidden="true"
               />
             </button>
           </form>
 
-          <div className={`figma-auth-bottom-prompt figma-auth-bottom-prompt--${mode}`}>
+          <div
+            className={`figma-auth-bottom-prompt figma-auth-bottom-prompt--${mode}`}
+          >
             <span className="figma-auth-line" />
-            <span>{mode === "register" ? "已 经 有 账 号？" : "还 没 有 账 号？"}</span>
+            <span>
+              {mode === "register"
+                ? "已 经 有 账 号？"
+                : "还 没 有 账 号？"}
+            </span>
             <span className="figma-auth-line" />
           </div>
+
           <button
             type="button"
             className={`figma-auth-secondary figma-auth-secondary--${mode}`}
-            onClick={() => switchMode(mode === "register" ? "login" : "register")}
+            onClick={() =>
+              switchMode(
+                mode === "register" ? "login" : "register"
+              )
+            }
           >
-            <span>{mode === "register" ? "立即登录" : "立即注册"}</span>
-            <img src={asset(mode === "register" ? "register-arrow.svg" : "login-arrow.svg")} alt="" aria-hidden="true" />
+            <span>
+              {mode === "register"
+                ? "立即登录"
+                : "立即注册"}
+            </span>
+
+            <img
+              src={asset(
+                mode === "register"
+                  ? "register-arrow.svg"
+                  : "login-arrow.svg"
+              )}
+              alt=""
+              aria-hidden="true"
+            />
           </button>
         </section>
       </div>
+
+      {loginResult && (
+        <LoginResultDialog
+          result={loginResult}
+          failureText={failureText}
+          scale={resultScale}
+          onSuccessConfirm={handleSuccessConfirm}
+          onFailureConfirm={handleFailureConfirm}
+        />
+      )}
     </main>
   );
 }
