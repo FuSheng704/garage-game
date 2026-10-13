@@ -1,3 +1,4 @@
+
 import {
   apiRequest,
   clearAuthToken,
@@ -14,7 +15,7 @@ import type {
 /**
  * ================================
  * 用户注册
- * POST /baseUrl/register
+ * POST /register
  * ================================
  */
 export async function registerApi(
@@ -31,16 +32,18 @@ export async function registerApi(
       auth: false,
 
       headers: {
-        "Content-Type":
-          "application/json",
+        "Content-Type": "application/json",
       },
 
+      /**
+       * 注册提交四个字段：
+       * 用户名、密码、手机号、邮箱
+       */
       body: JSON.stringify({
-        username:
-          params.username,
-
-        password:
-          params.password,
+        username: params.username,
+        password: params.password,
+        phone: params.phone,
+        email: params.email,
       }),
 
       responseType: "auto",
@@ -51,7 +54,7 @@ export async function registerApi(
 /**
  * ================================
  * 用户登录
- * POST /baseUrl/login
+ * POST /login
  * ================================
  */
 export async function loginApi(
@@ -59,11 +62,10 @@ export async function loginApi(
 ): Promise<TokenResponse> {
   /**
    * FastAPI OAuth2PasswordRequestForm
-   * 要求使用
+   * 要求使用：
    * application/x-www-form-urlencoded
    */
-  const body =
-    new URLSearchParams();
+  const body = new URLSearchParams();
 
   body.append(
     "grant_type",
@@ -123,8 +125,7 @@ export async function loginApi(
    */
   setAuthToken(
     data.access_token,
-    data.token_type ||
-      "Bearer"
+    data.token_type || "Bearer"
   );
 
   return data;
@@ -133,7 +134,7 @@ export async function loginApi(
 /**
  * ================================
  * 获取当前用户
- * GET /baseUrl/user/info
+ * GET /user/info
  * ================================
  */
 export async function getCurrentUserApi():
@@ -144,11 +145,10 @@ export async function getCurrentUserApi():
       method: "GET",
 
       /**
-       * 默认 auth = true，
-       * client.ts 会自动添加：
+       * 默认 auth = true
        *
-       * Authorization:
-       * Bearer xxxxx
+       * client.ts 会自动添加：
+       * Authorization: Bearer xxxxx
        */
       responseType: "auto",
     }
@@ -158,7 +158,7 @@ export async function getCurrentUserApi():
 /**
  * ================================
  * 用户退出
- * POST /baseUrl/logout
+ * POST /logout
  * ================================
  */
 export async function logoutApi():

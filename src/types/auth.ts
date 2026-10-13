@@ -1,13 +1,22 @@
+
 /**
  * 注册参数
+ *
+ * POST /register
+ * 新版后端要求提交：
+ * username、password、phone、email
  */
 export interface RegisterParams {
   username: string;
   password: string;
+  phone: string;
+  email: string;
 }
 
 /**
  * 登录参数
+ *
+ * POST /login
  */
 export interface LoginParams {
   username: string;
@@ -63,6 +72,5 @@ export type CurrentUser =
   | {
       username?: string;
 
-      [key: string]:
-        unknown;
+      [key: string]: unknown;
     };

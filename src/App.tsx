@@ -5,6 +5,7 @@ import {
 } from "react-router-dom";
 
 import ProtectedRoute from "./auth/ProtectedRoute";
+import GasStationList from './GasStationList';
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -17,6 +18,7 @@ function App() {
         path="/login"
         element={<Login />}
       />
+      <Route path="/pit-signal" element={<GasStationList />} />
 
       {/* 登录后主页 */}
       <Route

@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
-// ========== 方案2：图片全部从src/assets导入 ==========
-import pitMainBg from './assets/pit-main-bg.png';
-import pitBg from './assets/pit-bg.jpg';
+
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import pitMainBg from './assets/pit-bg.png';
+import pitBg from './assets/pit-bg.png';
 import glitterBullet from './assets/glitter-bullet.png';
 import helmetImg from './assets/helmet.png';
 import osbornTableBg from './assets/osborn-table-bg.png';
 import osbornHand from './assets/osborn-hand.png';
+import './GasStationList.css';
 
-// ========== 后端接口返回 TS 类型 ==========
 interface BackendRecordItem {
   id: number;
   category_id: number;
@@ -23,7 +23,6 @@ interface BackendResp {
   records: BackendRecordItem[];
 }
 
-// 前端业务对象
 interface RecordItem {
   id: number;
   shortTitle: string;
@@ -31,6 +30,7 @@ interface RecordItem {
   subDesc: string;
   category: string;
   date: string;
+  dateKey: number;
   status: '未处理' | '已修改' | '有回应';
   overview: string;
   issue: string;
@@ -39,10 +39,6 @@ interface RecordItem {
   link: string;
 }
 
-// ========== 每行固定高度 ==========
-const ITEM_ROW_HEIGHT = 80;
-
-// ========== 模拟后端数据库 ==========
 const mockBackendDb: BackendRecordItem[] = [
   {
     id: 1001,
@@ -117,7 +113,27 @@ const mockBackendDb: BackendRecordItem[] = [
   },
 ];
 
-// ========== 模拟接口 ==========
+// 用于演示第一条记录的详情。
+// 正式接入后端后，应改为读取接口返回的内容。
+const screenshotDetailForFirstRecord = {
+  overview:
+    '针对萧逸2026年生日活动的整体美术、卡面、服装立绘、文案及宣发内容提出优化意见，希望生日活动能够更突出萧逸个人特色与角色设定，提升整体完成度与专属感。',
+  issue: [
+    '主题创意不足：生日主题与日常内容区分度较弱，对萧逸个人设定挖掘不足。',
+    '美术表现存在偏差：卡面人物五官、神态、构图及配色等表现未充分突出角色特色。',
+    '服装立绘问题：服饰风格与细节丰富度不足，部分立绘姿势及角色塑造存在争议。',
+    '文案与内容不足：剧情、恋爱细节及角色中心度有进一步提升空间。',
+    '宣发与周边欠缺：生日宣发力度、内容审核及周边设计的角色关联性不足。',
+  ].join('\n'),
+  demand: [
+    '深入萧逸人设进行生日主题创新，增强生日卡与日常卡面的差异化。',
+    '优化卡面五官、神态、构图、光影及配色，保证角色形象稳定准确。',
+    '丰富服装、发型及配饰设计，提升精致度与多样性，并避免争议性立绘表现。',
+    '增加以萧逸为核心的剧情和恋爱内容，提高文本量与情感完整度。',
+    '加强生日活动宣发及内容审核，周边设计更多结合萧逸代表性元素。',
+  ].join('\n'),
+};
+
 async function mockFetchIssueList(
   category_id?: number,
   keyword?: string
@@ -130,12 +146,13 @@ async function mockFetchIssueList(
     list = list.filter((item) => item.category_id === category_id);
   }
 
-  if (keyword && keyword.trim() !== '') {
+  if (keyword?.trim()) {
     const kw = keyword.trim().toLowerCase();
+
     list = list.filter(
       (item) =>
         item.title.toLowerCase().includes(kw) ||
-        (item.summary && item.summary.toLowerCase().includes(kw)) ||
+        (item.summary?.toLowerCase().includes(kw) ?? false) ||
         item.content.toLowerCase().includes(kw)
     );
   }
@@ -143,665 +160,1347 @@ async function mockFetchIssueList(
   return { records: list };
 }
 
-// ========== 分类映射 ==========
 const categoryMap = [
   { id: 1, name: '生日活动' },
+  { id: 4, name: '美术物料' },
   { id: 2, name: '文案内容' },
   { id: 3, name: '角色设定' },
-  { id: 4, name: '美术物料' },
   { id: 5, name: '线下活动' },
 ];
 
-type CollapseKey = 'overview' | 'issue' | 'demand' | 'text' | 'link';
+type CollapseKey =
+  | 'overview'
+  | 'issue'
+  | 'demand'
+  | 'text'
+  | 'link';
+
+const initialCollapse: Record<CollapseKey, boolean> = {
+  overview: true,
+  issue: true,
+  demand: true,
+  text: true,
+  link: true,
+};
+
+// 设计画布尺寸
+const DESIGN_WIDTH = 1591;
+const DESIGN_HEIGHT = 895;
+
+// 动画时长
+const PANEL_MOTION_MS = 480;
+const DETAIL_REVEAL_DELAY_MS = 100;
+
+type StagePosition = {
+  scale: number;
+  left: number;
+  top: number;
+};
+
+/**
+ * 等比缩放
+ *
+ * 只使用一个 scale。
+ * 不使用 scaleX、scaleY 分别缩放。
+ *
+ * 窗口比例与设计稿不一致时：
+ * 页面完整显示，居中留白，不拉伸。
+ */
+function calculateStagePosition(
+  viewportWidth: number,
+  viewportHeight: number
+): StagePosition {
+  const width = Math.max(1, viewportWidth);
+  const height = Math.max(1, viewportHeight);
+
+  const scale = Math.min(
+    width / DESIGN_WIDTH,
+    height / DESIGN_HEIGHT
+  );
+
+  return {
+    scale,
+    left: (width - DESIGN_WIDTH * scale) / 2,
+    top: (height - DESIGN_HEIGHT * scale) / 2,
+  };
+}
+
+function useStagePosition(): StagePosition {
+  const [position, setPosition] = useState<StagePosition>(() =>
+    typeof window === 'undefined'
+      ? { scale: 1, left: 0, top: 0 }
+      : calculateStagePosition(
+          window.innerWidth,
+          window.innerHeight
+        )
+  );
+
+  useEffect(() => {
+    const resize = () => {
+      setPosition(
+        calculateStagePosition(
+          window.innerWidth,
+          window.innerHeight
+        )
+      );
+    };
+
+    resize();
+
+    window.addEventListener('resize', resize);
+
+    return () => {
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
+  return position;
+}
+
+function backendToFrontend(
+  backendItem: BackendRecordItem
+): RecordItem {
+  const d = new Date(backendItem.created_at);
+
+  const shortTitles: Record<number, string> = {
+    1001: '26年生日',
+    1002: '「全速等待」文案',
+    1003: '恶龙塑相关',
+    1004: '250情头相关',
+    1005: '音乐会票根相关',
+  };
+
+  return {
+    id: backendItem.id,
+    shortTitle:
+      shortTitles[backendItem.id] ??
+      backendItem.title.slice(0, 12),
+    title: backendItem.title,
+    subDesc: backendItem.summary ?? '',
+    category: backendItem.category_name,
+    date: `${d.getFullYear()}.${d.getMonth() + 1}`,
+    dateKey:
+      d.getFullYear() * 100 +
+      d.getMonth() +
+      1,
+    status: '未处理',
+    overview:
+      backendItem.id === 1001
+        ? screenshotDetailForFirstRecord.overview
+        : backendItem.summary ?? '',
+    issue:
+      backendItem.id === 1001
+        ? screenshotDetailForFirstRecord.issue
+        : '待后端扩展此字段',
+    demand:
+      backendItem.id === 1001
+        ? screenshotDetailForFirstRecord.demand
+        : '待后端扩展此字段',
+    textContent: backendItem.content,
+    link: backendItem.related_url ?? '',
+  };
+}
+
+type DetailGlyphKind =
+  | 'overview'
+  | 'issue'
+  | 'demand'
+  | 'text'
+  | 'link'
+  | 'progress'
+  | 'copy'
+  | 'external';
+
+const DetailGlyph: React.FC<{
+  kind: DetailGlyphKind;
+  size?: number;
+}> = ({ kind, size = 21 }) => {
+  const common = {
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.7,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      {...common}
+    >
+      {kind === 'overview' && (
+        <path d="M12 2c2 3.2-1 5.5 2.4 8.2.5-2 1.9-3 2.6-3.5 1 2.3 3.4 5.3 3.4 8.4A7.4 7.4 0 0 1 12 22a7.4 7.4 0 0 1-7.4-6.9c0-3.5 2.1-6.2 4.4-8.1-.2 3 1.5 4.2 2.2 4.5C12.7 8.8 11.6 5.5 12 2Z M12 14c1.7 2 2.4 3.1 2.4 4.1a2.4 2.4 0 0 1-4.8 0c0-1.2.8-2.5 2.4-4.1Z" />
+      )}
+
+      {kind === 'issue' && (
+        <>
+          <circle cx="10.6" cy="10.6" r="7" />
+          <path d="m16 16 5 5" />
+        </>
+      )}
+
+      {kind === 'demand' && (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11v6M12 7h.01" />
+        </>
+      )}
+
+      {kind === 'text' && (
+        <>
+          <path d="M6 2.5h8l5 5V21H6z" />
+          <path d="M14 2.5v5h5M9 12h7M9 16h7" />
+        </>
+      )}
+
+      {kind === 'link' && (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="4.5" />
+          <path d="M12 9.5v5M9.5 12h5" />
+        </>
+      )}
+
+      {kind === 'progress' && (
+        <path d="m4 4 8 8-8 8M12 4l8 8-8 8" />
+      )}
+
+      {kind === 'copy' && (
+        <>
+          <rect x="8" y="8" width="12" height="13" rx="2" />
+          <path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2" />
+        </>
+      )}
+
+      {kind === 'external' && (
+        <>
+          <path d="M13 4h7v7M20 4l-9 9" />
+          <path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6" />
+        </>
+      )}
+    </svg>
+  );
+};
 
 const GasStationPage: React.FC = () => {
-  const [page, setPage] = useState<'splash' | 'list'>('splash');
-  const [selectedItem, setSelectedItem] = useState<RecordItem | null>(null);
-  const [panelCollapsed, setPanelCollapsed] = useState(false);
-  const [collapseMap, setCollapseMap] = useState<Record<CollapseKey, boolean>>({
-    overview: true,
-    issue: true,
-    demand: true,
-    text: true,
-    link: true,
-  });
+  const stage = useStagePosition();
+
+  const [page, setPage] =
+    useState<'splash' | 'list'>('splash');
+
+  const [selectedItem, setSelectedItem] =
+    useState<RecordItem | null>(null);
+
+  const [panelCollapsed, setPanelCollapsed] =
+    useState(false);
+
+  const [detailVisible, setDetailVisible] =
+    useState(false);
+
+  const closeTimerRef = useRef<number | null>(null);
+  const revealTimerRef = useRef<number | null>(null);
+
+  const [collapseMap, setCollapseMap] =
+    useState<Record<CollapseKey, boolean>>({
+      ...initialCollapse,
+    });
 
   const [searchKey, setSearchKey] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(undefined);
 
-  const [recordList, setRecordList] = useState<RecordItem[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] =
+    useState<number | undefined>(undefined);
+
+  const [otherOnly, setOtherOnly] = useState(false);
+
+  const [recordList, setRecordList] =
+    useState<RecordItem[]>([]);
+
   const [loading, setLoading] = useState(false);
 
-  const [isBgmPlaying, setIsBgmPlaying] = useState(false);
+  const [isBgmPlaying, setIsBgmPlaying] =
+    useState(false);
+
+  const [startYear, setStartYear] = useState('');
+  const [startMonth, setStartMonth] = useState('');
+  const [endYear, setEndYear] = useState('');
+  const [endMonth, setEndMonth] = useState('');
+
   const audioRef = useRef<HTMLAudioElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  // 后端数据转前端
-  function backendToFrontend(backendItem: BackendRecordItem): RecordItem {
-    const d = new Date(backendItem.created_at);
-    const formatDate = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+      }
 
-    return {
-      id: backendItem.id,
-      shortTitle: backendItem.title.slice(0, 12),
-      title: backendItem.title,
-      subDesc: backendItem.summary ?? '',
-      category: backendItem.category_name,
-      date: formatDate,
-      status: '未处理',
-      overview: backendItem.summary ?? '',
-      issue: '待后端扩展此字段',
-      demand: '待后端扩展此字段',
-      textContent: backendItem.content,
-      link: backendItem.related_url ?? '',
+      if (revealTimerRef.current !== null) {
+        window.clearTimeout(revealTimerRef.current);
+      }
     };
-  }
+  }, []);
 
-  // 加载列表
-  const loadRecordList = async () => {
-    if (page !== 'list') return;
-    setLoading(true);
+  const clearMotionTimers = () => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
 
-    try {
-      const resp = await mockFetchIssueList(selectedCategoryId, searchKey);
-      const frontendData = resp.records.map((r) => backendToFrontend(r));
-      setRecordList(frontendData);
-    } catch (e) {
-      console.error('获取列表失败', e);
-    } finally {
-      setLoading(false);
+    if (revealTimerRef.current !== null) {
+      window.clearTimeout(revealTimerRef.current);
+      revealTimerRef.current = null;
     }
   };
 
   useEffect(() => {
-    loadRecordList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, selectedCategoryId, searchKey]);
+    if (page !== 'list') return;
 
-  // 复制
-  const copyText = async (text: string) => {
+    let active = true;
+
+    setLoading(true);
+
+    mockFetchIssueList(
+      selectedCategoryId,
+      searchKey
+    )
+      .then((resp) => {
+        if (active) {
+          setRecordList(
+            resp.records.map(backendToFrontend)
+          );
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          console.error('获取列表失败', error);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    page,
+    selectedCategoryId,
+    searchKey,
+  ]);
+
+  const filteredRecords = useMemo(() => {
+    const start =
+      startYear && startMonth
+        ? Number(startYear) * 100 +
+          Number(startMonth)
+        : null;
+
+    const end =
+      endYear && endMonth
+        ? Number(endYear) * 100 +
+          Number(endMonth)
+        : null;
+
+    return recordList.filter((item) => {
+      if (
+        otherOnly &&
+        categoryMap.some(
+          (cat) => cat.name === item.category
+        )
+      ) {
+        return false;
+      }
+
+      if (
+        start !== null &&
+        item.dateKey < start
+      ) {
+        return false;
+      }
+
+      if (
+        end !== null &&
+        item.dateKey > end
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [
+    recordList,
+    otherOnly,
+    startYear,
+    startMonth,
+    endYear,
+    endMonth,
+  ]);
+
+  const copyText = async (value: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(value);
       alert('复制成功');
     } catch {
       alert('复制失败');
     }
   };
 
-  // 折叠
   const toggleCollapse = (key: CollapseKey) => {
-    setCollapseMap((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  // 点击列表项
-  const handleClickItem = (item: RecordItem) => {
-    setSelectedItem(item);
-    setPanelCollapsed(true);
-    setCollapseMap({
-      overview: true,
-      issue: true,
-      demand: true,
-      text: true,
-      link: true,
-    });
+    setCollapseMap((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
   };
 
   const backToList = () => {
-    setSelectedItem(null);
+    clearMotionTimers();
+
     setPanelCollapsed(false);
+    setDetailVisible(false);
+
+    closeTimerRef.current =
+      window.setTimeout(() => {
+        setSelectedItem(null);
+        closeTimerRef.current = null;
+      }, PANEL_MOTION_MS);
+  };
+
+  const handleClickItem = (item: RecordItem) => {
+    if (
+      panelCollapsed &&
+      selectedItem?.id === item.id
+    ) {
+      backToList();
+      return;
+    }
+
+    clearMotionTimers();
+
+    const wasCollapsed = panelCollapsed;
+
+    setSelectedItem(item);
+    setPanelCollapsed(true);
+    setCollapseMap({ ...initialCollapse });
+
+    if (!wasCollapsed) {
+      setDetailVisible(false);
+
+      revealTimerRef.current =
+        window.setTimeout(() => {
+          setDetailVisible(true);
+          revealTimerRef.current = null;
+        }, DETAIL_REVEAL_DELAY_MS);
+    } else {
+      setDetailVisible(true);
+    }
   };
 
   const backToSplash = () => {
+    clearMotionTimers();
+
+    audioRef.current?.pause();
+
+    setIsBgmPlaying(false);
     setSelectedItem(null);
     setPanelCollapsed(false);
+    setDetailVisible(false);
     setPage('splash');
   };
 
-  // BGM
   const toggleBGM = () => {
-    if (!audioRef.current) return;
+    const audio = audioRef.current;
+
+    if (!audio) return;
+
     if (isBgmPlaying) {
-      audioRef.current.pause();
+      audio.pause();
+      setIsBgmPlaying(false);
     } else {
-      audioRef.current.play();
-    }
-    setIsBgmPlaying(!isBgmPlaying);
-  };
-
-  // 筛选：同一项二次点击取消
-  const handleCategoryClick = (catId: number | undefined) => {
-    if (selectedCategoryId === catId) {
-      setSelectedCategoryId(undefined);
-    } else {
-      setSelectedCategoryId(catId);
-    }
-  };
-
-  // 状态颜色
-  const getStatusColor = (status: string) => {
-    if (status === '未处理') return 'bg-yellow-400';
-    if (status === '已修改') return 'bg-green-400';
-    return 'bg-blue-400';
-  };
-
-  // 分类标签样式
-  const getCategoryStyle = (category: string) => {
-    switch (category) {
-      case '生日活动':
-        return 'bg-red-900/40 border-red-500/60 text-red-200';
-      case '文案内容':
-        return 'bg-blue-900/40 border-blue-500/60 text-blue-200';
-      case '角色设定':
-        return 'bg-purple-900/40 border-purple-500/60 text-purple-200';
-      case '美术物料':
-        return 'bg-orange-900/40 border-orange-500/60 text-orange-200';
-      case '线下活动':
-        return 'bg-green-900/40 border-green-500/60 text-green-200';
-      default:
-        return 'bg-gray-700/40 border-gray-500/60 text-gray-200';
+      void audio
+        .play()
+        .then(() => {
+          setIsBgmPlaying(true);
+        })
+        .catch((error: unknown) => {
+          console.warn(
+            'BGM 播放失败，请确认 public/bgm.mp3 存在。',
+            error
+          );
+        });
     }
   };
 
-  // ========== 开屏页 ==========
-  if (page === 'splash') {
-    return (
-      <div
-        className="w-screen h-screen relative overflow-hidden"
-        style={{
-          backgroundImage: `url(${pitMainBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      >
-        <div
-          onClick={() => setPage('list')}
-          className="absolute top-[4%] left-[2%] w-[36%] h-[72%] cursor-pointer"
-          title="点击屏幕，进入维修区讯号系统"
-        />
-      </div>
+  const handleCategoryClick = (
+    catId: number | undefined
+  ) => {
+    setOtherOnly(false);
+
+    setSelectedCategoryId((prev) =>
+      prev === catId ? undefined : catId
     );
-  }
+  };
 
-  // ========== 列表页 ==========
-  return (
-    <div
-      className="min-h-screen text-gray-100 relative overflow-hidden"
-      style={{
-        backgroundImage: `url(${pitBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
-      <div className="absolute inset-0 bg-black/60 z-0"></div>
-      {/* ⚠️ BGM音频文件：音频不属于图片，仍然放在public目录，路径不变 */}
-      <audio ref={audioRef} src="/bgm.mp3" loop />
+  const changeDateInput = (
+    value: string,
+    setter: (v: string) => void,
+    maxLength: number
+  ) => {
+    setter(
+      value.replace(/\D/g, '').slice(0, maxLength)
+    );
+  };
 
-      {/* ========== 右下角装饰：GlitterBullet 徽章 + 前景头盔 ========== */}
-      <div className="absolute bottom-0 right-0 z-0 pointer-events-none overflow-hidden">
-        <div className="relative" style={{ width: '460px', height: '360px', right: '40px' }}>
-          <img
-            src={glitterBullet}
-            alt="glitter bullet logo"
-            className="absolute w-full h-full object-contain"
-            style={{ left: '100px', top: '10px', opacity: '0.75', filter: 'brightness(1.4)' }}
-          />
-          <img
-            src={helmetImg}
-            alt="racing helmet"
-            className="absolute w-[360px] object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.6)]"
-            style={{ right: '-70px', bottom: '30px' }}
-          />
-        </div>
-      </div>
+  const renderRow = (
+    item: RecordItem,
+    index: number,
+    collapsed: boolean
+  ) => {
+    const seqNo = String(index + 1).padStart(
+      2,
+      '0'
+    );
 
-      {/* 顶部 */}
-      <header className="relative z-20 flex justify-between items-start p-6 pb-4 border-b border-red-900/40 bg-black/40 backdrop-blur-sm">
-        <div className="flex items-end gap-6">
-          <button
-            onClick={backToSplash}
-            className="text-red-500 text-xl hover:text-red-400 leading-none"
-            title="返回开屏主页"
-          >
-            ⌂
-          </button>
-          <div>
-            <h1 className="text-4xl font-bold text-white leading-none">维修区讯号</h1>
-            <p className="text-red-500 text-xl font-semibold mt-1 leading-none">PIT SIGNAL</p>
-          </div>
-          <div className="mb-1">
-            <p className="text-gray-200 text-sm">查看最新维权事件，获取参与方式并跟进处理结果</p>
-            <p className="text-gray-400 text-xs mt-0.5">
-              View latest issue, get instructions and track feedback progress
-            </p>
-          </div>
-        </div>
+    return (
+      <button
+        type="button"
+        key={item.id}
+        className={`pit-record ${
+          collapsed ? 'pit-record--small' : ''
+        } ${
+          selectedItem?.id === item.id
+            ? 'pit-record--selected'
+            : ''
+        }`}
+        onClick={() => handleClickItem(item)}
+        title={
+          panelCollapsed &&
+          selectedItem?.id === item.id
+            ? '再次点击返回完整列表'
+            : item.title
+        }
+        tabIndex={
+          panelCollapsed === collapsed ? 0 : -1
+        }
+      >
+        <span className="pit-record-index">
+          <span>{seqNo[0]}</span>
+          {seqNo[1]}
+        </span>
 
-        <div className="flex flex-col items-end gap-2">
-          <div className="text-xs text-gray-400">
-            R1 // Glitter Bullet PIT system
-            <button
-              onClick={toggleBGM}
-              className="ml-4 border border-gray-500 px-3 py-1 rounded bg-black/60 hover:border-red-500 transition"
-            >
-              {isBgmPlaying ? 'PAUSE BGM' : 'PLAY BGM'}
-            </button>
-          </div>
-          <div className="flex items-stretch">
-            <input
-              value={searchKey}
-              onChange={(e) => setSearchKey(e.target.value)}
-              placeholder="搜索关键词/标题/标签..."
-              className="bg-neutral-900/80 border border-gray-700 px-3 py-1.5 w-72 rounded-l-md focus:outline-none focus:border-red-500 text-sm"
-            />
-            <button
-              className="bg-red-600 px-4 py-1.5 rounded-r-md hover:bg-red-700 transition text-sm flex items-center justify-center"
-            >
-              搜索
-            </button>
-          </div>
-        </div>
-      </header>
+        <span className="pit-record-main">
+          <span className="pit-record-title">
+            {collapsed
+              ? item.shortTitle
+              : item.title}
+          </span>
 
-      <div className="relative z-10 flex gap-5 p-5 items-start">
-        {/* ========== 左侧列表容器：固定高度 720px ========== */}
-        <div
-          className={`transition-all duration-500 border border-red-800/60 rounded-lg overflow-hidden min-h-0 relative
-            ${panelCollapsed ? 'w-56' : 'flex-1'}
-          `}
-          style={{
-            height: '720px',
-            backgroundImage: `url(${osbornTableBg})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
-        >
-          <div className="absolute inset-0 bg-neutral-900/70"></div>
+          {!collapsed && (
+            <span className="pit-record-summary">
+              {item.subDesc}
+            </span>
+          )}
+        </span>
 
-          {/* Osborn 手写签名 */}
-          <img
-            src={osbornHand}
-            alt="Osborn"
-            className="absolute top-3 right-8 h-20 object-contain opacity-40 z-30 pointer-events-none select-none brightness-150"
-          />
-
-          <div className="relative z-10 h-full flex flex-col">
-            {!panelCollapsed ? (
-              <>
-                {/* 展开模式表头 */}
-                <div className="grid grid-cols-[56px_1fr_110px_110px_110px] px-4 py-2 text-[20px] border-b border-gray-800 bg-gray-200/80 text-black">
-                  <span>#</span>
-                  <span className="flex flex-col">
-                    <span>维权标题</span>
-                    <span className="text-[14px]">ISSUE</span>
-                  </span>
-                  <span className="-ml-[20px] flex flex-col">
-                    <span>分类</span>
-                    <span className="text-[14px]">CATEGORY</span>
-                  </span>
-                  <span className="-ml-[10px] flex flex-col">
-                    <span>发布/更新</span>
-                    <span className="text-[14px]">DATE</span>
-                  </span>
-                  <span className="flex flex-col">
-                    <span>处理情况</span>
-                    <span className="text-[14px]">STATUS</span>
-                  </span>
-                </div>
-
-                {/* 滚动区 */}
-                <div className="flex-1 min-h-0 overflow-y-auto">
-                  {loading ? (
-                    <div className="p-6 text-center text-gray-400">加载中...</div>
-                  ) : recordList.length === 0 ? (
-                    <div className="p-6 text-center text-gray-400">暂无数据</div>
-                  ) : (
-                    recordList.map((item, index) => {
-                      const seqNo = String(index + 1).padStart(2, '0');
-                      return (
-                        <div
-                          key={item.id}
-                          onClick={() => handleClickItem(item)}
-                          className={`grid grid-cols-[56px_1fr_110px_110px_110px] px-4 border-t border-gray-800 cursor-pointer transition items-center
-                            ${
-                              selectedItem?.id === item.id
-                                ? 'bg-neutral-700/70 border-l-2 border-red-500'
-                                : ''
-                            }
-                            ${index % 2 === 0 ? 'bg-neutral-900/40' : 'bg-neutral-800/30'}
-                            hover:bg-neutral-800/50
-                          `}
-                          style={{ height: `${ITEM_ROW_HEIGHT}px` }}
-                        >
-                          <span
-                            className={`font-bold text-[18px] ${
-                              (index + 1) % 2 === 1 ? 'text-red-500' : 'text-white'
-                            }`}
-                          >
-                            {seqNo}
-                          </span>
-
-                          <div className="min-w-0">
-                            <div className="font-semibold text-[16px] truncate">{item.title}</div>
-                            <div className="text-[13px] text-gray-400 mt-0.5 truncate">
-                              {item.subDesc}
-                            </div>
-                          </div>
-
-                          <span>
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-[14px] border ${getCategoryStyle(
-                                item.category
-                              )}`}
-                            >
-                              {item.category}
-                            </span>
-                          </span>
-
-                          <span className="text-[15px] text-gray-300">{item.date}</span>
-
-                          <span className="flex items-center gap-2 text-[14px]">
-                            <span
-                              className={`w-2 h-2 rounded-full ${getStatusColor(
-                                item.status
-                              )}`}
-                            ></span>
-                            {item.status}
-                          </span>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </>
-            ) : (
-              <>
-                {/* 收缩窄面板表头 */}
-                <div className="px-4 py-2 border-b border-gray-800 bg-gray-200/80 text-black">
-                  <span className="flex flex-col">
-                    <span className="text-[20px]">维权标题</span>
-                    <span className="text-[14px]">ISSUE</span>
-                  </span>
-                </div>
-
-                {/* 窄模式列表滚动区 */}
-                <div className="flex-1 min-h-0 overflow-y-auto">
-                  {loading ? (
-                    <div className="p-6 text-center text-gray-400">加载中...</div>
-                  ) : recordList.length === 0 ? (
-                    <div className="p-6 text-center text-gray-400">暂无数据</div>
-                  ) : (
-                    recordList.map((item, index) => {
-                      const seqNo = String(index + 1).padStart(2, '0');
-                      return (
-                        <div
-                          key={item.id}
-                          onClick={() => handleClickItem(item)}
-                          className={`px-4 border-t border-gray-800 cursor-pointer transition flex items-center
-                            ${
-                              selectedItem?.id === item.id
-                                ? 'bg-neutral-700/70 border-l-2 border-red-500'
-                                : ''
-                            }
-                            hover:bg-neutral-800/50
-                          `}
-                          style={{ height: `${ITEM_ROW_HEIGHT}px` }}
-                        >
-                          <span
-                            className={`font-bold text-[18px] mr-2 ${
-                              (index + 1) % 2 === 1 ? 'text-red-500' : 'text-white'
-                            }`}
-                          >
-                            {seqNo}
-                          </span>
-                          <span className="text-[16px] truncate">{item.shortTitle}</span>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* ========== 右侧筛选 ========== */}
-        {!panelCollapsed && (
-          <div className="w-72 border border-red-800/60 bg-neutral-900/60 rounded-lg p-4 h-fit">
-            <h3 className="text-base font-semibold mb-2">
-              问题类型 <span className="text-xs text-gray-400">Filter</span>
-            </h3>
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              <button
-                onClick={() => handleCategoryClick(undefined)}
-                className={`px-2 py-1.5 rounded text-xs border transition ${
-                  selectedCategoryId === undefined
-                    ? 'bg-red-800/50 border-red-500 text-red-100'
-                    : 'bg-neutral-800/60 border-gray-700 hover:border-gray-500'
+        {!collapsed && (
+          <>
+            <span className="pit-record-category">
+              <span
+                className={`pit-category-tag pit-category-tag--${
+                  item.category === '生日活动' ||
+                  item.category === '线下活动'
+                    ? 'blue'
+                    : 'red'
                 }`}
               >
-                全部
-              </button>
-              {categoryMap.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => handleCategoryClick(cat.id)}
-                  className={`px-2 py-1.5 rounded text-xs border transition ${
-                    selectedCategoryId === cat.id
-                      ? 'bg-red-800/50 border-red-500 text-red-100'
-                      : 'bg-neutral-800/60 border-gray-700 hover:border-gray-500'
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
+                {item.category}
+              </span>
+            </span>
 
-            <h4 className="text-base font-semibold mb-2">
-              发布日期 <span className="text-xs text-gray-400">Date</span>
-            </h4>
-            <div className="space-y-2">
-              <input
-                type="date"
-                className="w-full bg-neutral-800/70 border border-gray-700 p-1.5 rounded text-xs"
-              />
-              <div className="text-center text-xs text-gray-400">至</div>
-              <input
-                type="date"
-                className="w-full bg-neutral-800/70 border border-gray-700 p-1.5 rounded text-xs"
-              />
-            </div>
-          </div>
+            <span className="pit-record-date">
+              {item.date}
+            </span>
+
+            <span
+              className={`pit-record-status pit-record-status--${
+                item.status === '未处理'
+                  ? 'pending'
+                  : item.status === '已修改'
+                  ? 'updated'
+                  : 'replied'
+              }`}
+            >
+              <span className="pit-status-dot" />
+              {item.status}
+            </span>
+          </>
         )}
+      </button>
+    );
+  };
 
-        {/* ========== 详情面板：统一为截图式卡片布局，固定高度 720px ========== */}
-        {selectedItem && (
-          <div
-            className="flex-1 border border-red-800/60 bg-neutral-900/70 rounded-lg relative overflow-hidden flex flex-col"
-            style={{ height: '720px' }}
+  const renderDetailBlock = (
+    key: CollapseKey,
+    chinese: string,
+    english: string,
+    kind: DetailGlyphKind,
+    className = ''
+  ) => {
+    if (!selectedItem) return null;
+
+    const value =
+      selectedItem[
+        key === 'text' ? 'textContent' : key
+      ];
+
+    const isBulletList =
+      (key === 'issue' || key === 'demand') &&
+      selectedItem.id === 1001;
+
+    const isNumberedText =
+      key === 'text' &&
+      /^1[.、]/.test(value.trim());
+
+    return (
+      <section
+        className={`pit-detail-block ${className}`}
+        key={key}
+      >
+        <div className="pit-detail-block-heading">
+          <button
+            type="button"
+            className="pit-detail-block-toggle"
+            onClick={() => toggleCollapse(key)}
+            aria-expanded={collapseMap[key]}
+            title={`${
+              collapseMap[key] ? '收起' : '展开'
+            }${chinese}`}
           >
+            <span className="pit-detail-glyph">
+              <DetailGlyph kind={kind} />
+            </span>
 
-            <img
-              src={osbornTableBg}
-              alt="osborn detail bg"
-              className="absolute top-4 right-6 h-56 object-contain opacity-60 z-40 pointer-events-none select-none"
+            <span className="pit-detail-block-cn">
+              {chinese}
+            </span>
+
+            <span className="pit-detail-block-en">
+              {english}
+            </span>
+          </button>
+
+          {key === 'text' && (
+            <button
+              type="button"
+              className="pit-detail-copy-icon"
+              onClick={() => void copyText(value)}
+              aria-label="复制维权文案"
+              title="复制维权文案"
+            >
+              <DetailGlyph
+                kind="copy"
+                size={17}
+              />
+            </button>
+          )}
+        </div>
+
+        {collapseMap[key] &&
+          (key === 'link' ? (
+            <div className="pit-detail-address-actions">
+              <div className="pit-detail-link-control">
+                <button
+                  type="button"
+                  onClick={() => void copyText(value)}
+                  disabled={!value}
+                  title="复制维权地址"
+                >
+                  <DetailGlyph
+                    kind="link"
+                    size={16}
+                  />
+                  复制链接
+                </button>
+
+                {value && (
+                  <a
+                    href={value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="在新窗口打开维权地址"
+                    title="打开维权地址"
+                  >
+                    <DetailGlyph
+                      kind="external"
+                      size={17}
+                    />
+                  </a>
+                )}
+              </div>
+            </div>
+          ) : isBulletList ? (
+            <ul className="pit-detail-block-body pit-detail-bullets">
+              {value
+                .split('\n')
+                .filter(Boolean)
+                .map((line, i) => (
+                  <li key={i}>{line}</li>
+                ))}
+            </ul>
+          ) : isNumberedText ? (
+            <ol className="pit-detail-block-body pit-detail-numbered">
+              {value
+                .split('\n')
+                .filter(Boolean)
+                .map((line, i) => (
+                  <li key={i}>
+                    {line.replace(
+                      /^\d+[.、]\s*/,
+                      ''
+                    )}
+                  </li>
+                ))}
+            </ol>
+          ) : (
+            <p className="pit-detail-block-body">
+              {value || '暂无内容'}
+            </p>
+          ))}
+      </section>
+    );
+  };
+
+  return (
+    <div className="pit-viewport">
+      <div
+        className="pit-stage"
+        style={{
+          transform: `translate(${stage.left}px, ${stage.top}px) scale(${stage.scale})`,
+        }}
+      >
+        {page === 'splash' ? (
+          <div
+            className="pit-splash"
+            style={{
+              backgroundImage: `url(${pitMainBg})`,
+            }}
+          >
+            <button
+              type="button"
+              className="pit-splash-entry"
+              onClick={() => setPage('list')}
+              title="点击屏幕，进入维修区讯号系统"
+              aria-label="进入维修区讯号系统"
+            />
+          </div>
+        ) : (
+          <main
+            className="pit-scene"
+            style={{
+              backgroundImage: `url(${pitBg})`,
+            }}
+          >
+            <div
+              className="pit-scene-shade"
+              aria-hidden="true"
             />
 
-            {/* 顶部标题区 */}
-            <div className="relative z-20 p-5 pb-3 border-b border-gray-800 bg-neutral-900/80">
+            <audio
+              ref={audioRef}
+              src="/bgm.mp3"
+              loop
+            />
+
+            <header
+              className={`pit-header ${
+                selectedItem
+                  ? 'pit-header--detail'
+                  : ''
+              }`}
+            >
               <button
-                onClick={backToList}
-                className="text-red-500 text-sm hover:text-red-400 mb-2"
+                type="button"
+                className="pit-back"
+                onClick={backToSplash}
+                aria-label="返回开屏主页"
+                title="返回开屏主页"
               >
-                « 返回列表
+                <svg
+                  viewBox="0 0 55 52"
+                  width="55"
+                  height="52"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M28 4 L7 26 L28 48 M49 4 L28 26 L49 48"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeLinejoin="miter"
+                  />
+                </svg>
               </button>
 
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <h2 className="text-2xl font-bold truncate">{selectedItem.title}</h2>
-                  <div className="flex items-center gap-3 mt-2 flex-wrap">
+              <div className="pit-brand">
+                <h1>维修区讯号</h1>
+                <div>PIT SIGNAL</div>
+              </div>
+
+              <div
+                className="pit-red-slash"
+                aria-hidden="true"
+              />
+
+              <div className="pit-headline">
+                <div>
+                  查看最新维权事件，获取参与方式并跟进处理结果
+                </div>
+                <p>
+                  TRACK THE ISSUES. TAKE ACTION.
+                  SEE THE RESULTS.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="pit-system"
+                onClick={toggleBGM}
+                title={
+                  isBgmPlaying
+                    ? '暂停 BGM'
+                    : '播放 BGM'
+                }
+              >
+                <span>
+                  R1 // Glitter Bullet
+                  <br />
+                  PIT system
+                </span>
+
+                <span
+                  className="pit-system-chevrons"
+                  aria-hidden="true"
+                >
+                  »
+                </span>
+              </button>
+
+              <form
+                className={`pit-search ${
+                  panelCollapsed
+                    ? 'pit-search--hidden'
+                    : ''
+                }`}
+                aria-hidden={panelCollapsed}
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  searchRef.current?.blur();
+                }}
+              >
+                <svg
+                  className="pit-search-icon"
+                  viewBox="0 0 24 24"
+                  width="25"
+                  height="25"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <circle
+                    cx="10.5"
+                    cy="10.5"
+                    r="7.5"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                  />
+                  <path
+                    d="M16.5 16.5 L22 22"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                  />
+                </svg>
+
+                <input
+                  tabIndex={
+                    panelCollapsed ? -1 : 0
+                  }
+                  ref={searchRef}
+                  value={searchKey}
+                  onChange={(event) =>
+                    setSearchKey(
+                      event.target.value
+                    )
+                  }
+                  placeholder="搜索关键词/标题/标签..."
+                  aria-label="搜索关键词、标题或标签"
+                />
+
+                <span className="pit-search-enter">
+                  / ENTER
+                </span>
+
+                <button
+                  type="submit"
+                  tabIndex={
+                    panelCollapsed ? -1 : 0
+                  }
+                >
+                  搜索
+                </button>
+              </form>
+            </header>
+
+            <section
+              className={`pit-table ${
+                panelCollapsed
+                  ? 'pit-table--collapsed'
+                  : ''
+              }`}
+              aria-label="维权事件列表"
+            >
+              <div
+                className="pit-table-view pit-table-view--full"
+                aria-hidden={panelCollapsed}
+              >
+                <div className="pit-table-head">
+                  <span className="pit-table-head-index">
+                    #
+                  </span>
+                  <span>
+                    维权标题 <small>ISSUE</small>
+                  </span>
+                  <span>
+                    分类 <small>CATEGORY</small>
+                  </span>
+                  <span>
+                    发布/更新{' '}
+                    <small>CATEGORY</small>
+                  </span>
+                  <span>
+                    处理情况{' '}
+                    <small>STATUS</small>
+                  </span>
+                </div>
+
+                <div className="pit-table-body">
+                  <div
+                    className="pit-table-watermark"
+                    style={{
+                      backgroundImage: `url(${osbornTableBg})`,
+                    }}
+                    aria-hidden="true"
+                  />
+
+                  {loading ? (
+                    <div className="pit-table-empty">
+                      加载中...
+                    </div>
+                  ) : filteredRecords.length === 0 ? (
+                    <div className="pit-table-empty">
+                      暂无数据
+                    </div>
+                  ) : (
+                    filteredRecords.map(
+                      (item, index) =>
+                        renderRow(
+                          item,
+                          index,
+                          false
+                        )
+                    )
+                  )}
+                </div>
+              </div>
+
+              <div
+                className="pit-table-view pit-table-view--small"
+                aria-hidden={!panelCollapsed}
+              >
+                <div className="pit-table-head">
+                  <span className="pit-table-head-index">
+                    #
+                  </span>
+
+                  <button
+                    type="button"
+                    className="pit-table-small-heading"
+                    onClick={backToList}
+                    tabIndex={
+                      panelCollapsed ? 0 : -1
+                    }
+                    title="返回完整列表"
+                  >
+                    维权标题{' '}
+                    <small>ISSUE</small>
+                  </button>
+                </div>
+
+                <div className="pit-table-body">
+                  {loading ? (
+                    <div className="pit-table-empty">
+                      加载中...
+                    </div>
+                  ) : filteredRecords.length === 0 ? (
+                    <div className="pit-table-empty">
+                      暂无数据
+                    </div>
+                  ) : (
+                    filteredRecords.map(
+                      (item, index) =>
+                        renderRow(
+                          item,
+                          index,
+                          true
+                        )
+                    )
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <aside
+              className={`pit-filter ${
+                panelCollapsed
+                  ? 'pit-filter--hidden'
+                  : ''
+              }`}
+              aria-label="筛选条件"
+              aria-hidden={panelCollapsed}
+            >
+              <div className="pit-filter-heading">
+                问题类型 <span>Filter</span>
+              </div>
+
+              <div className="pit-filter-buttons">
+                {categoryMap.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    tabIndex={
+                      panelCollapsed ? -1 : 0
+                    }
+                    className={
+                      selectedCategoryId ===
+                        cat.id && !otherOnly
+                        ? 'pit-filter-active'
+                        : ''
+                    }
+                    onClick={() =>
+                      handleCategoryClick(cat.id)
+                    }
+                    aria-pressed={
+                      selectedCategoryId ===
+                        cat.id && !otherOnly
+                    }
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  tabIndex={
+                    panelCollapsed ? -1 : 0
+                  }
+                  className={
+                    otherOnly
+                      ? 'pit-filter-active'
+                      : ''
+                  }
+                  onClick={() => {
+                    setSelectedCategoryId(
+                      undefined
+                    );
+                    setOtherOnly(
+                      (prev) => !prev
+                    );
+                  }}
+                  aria-pressed={otherOnly}
+                >
+                  其他
+                </button>
+              </div>
+
+              <div className="pit-date-heading">
+                发布日期 <span>Date</span>
+              </div>
+
+              <div className="pit-date-inputs">
+                <div className="pit-date-line">
+                  <input
+                    tabIndex={
+                      panelCollapsed ? -1 : 0
+                    }
+                    aria-label="开始年份"
+                    inputMode="numeric"
+                    value={startYear}
+                    onChange={(e) =>
+                      changeDateInput(
+                        e.target.value,
+                        setStartYear,
+                        4
+                      )
+                    }
+                  />
+                  <span>年</span>
+
+                  <input
+                    tabIndex={
+                      panelCollapsed ? -1 : 0
+                    }
+                    aria-label="开始月份"
+                    inputMode="numeric"
+                    value={startMonth}
+                    onChange={(e) =>
+                      changeDateInput(
+                        e.target.value,
+                        setStartMonth,
+                        2
+                      )
+                    }
+                  />
+                  <span>月</span>
+                </div>
+
+                <div className="pit-date-line">
+                  <input
+                    tabIndex={
+                      panelCollapsed ? -1 : 0
+                    }
+                    aria-label="结束年份"
+                    inputMode="numeric"
+                    value={endYear}
+                    onChange={(e) =>
+                      changeDateInput(
+                        e.target.value,
+                        setEndYear,
+                        4
+                      )
+                    }
+                  />
+                  <span>年</span>
+
+                  <input
+                    tabIndex={
+                      panelCollapsed ? -1 : 0
+                    }
+                    aria-label="结束月份"
+                    inputMode="numeric"
+                    value={endMonth}
+                    onChange={(e) =>
+                      changeDateInput(
+                        e.target.value,
+                        setEndMonth,
+                        2
+                      )
+                    }
+                  />
+                  <span>月</span>
+                </div>
+
+                <span className="pit-date-to">
+                  至
+                </span>
+              </div>
+            </aside>
+
+            <div
+              className={`pit-right-decoration ${
+                panelCollapsed
+                  ? 'pit-right-decoration--hidden'
+                  : ''
+              }`}
+              aria-hidden="true"
+            >
+              <img
+                className="pit-bullet"
+                src={glitterBullet}
+                alt=""
+              />
+
+              <img
+                className="pit-helmet"
+                src={helmetImg}
+                alt=""
+              />
+            </div>
+
+            {selectedItem && (
+              <>
+                <section
+                  className={`pit-detail ${
+                    detailVisible
+                      ? 'pit-detail--visible'
+                      : ''
+                  }`}
+                  aria-label="维权事件详情"
+                  aria-hidden={!detailVisible}
+                >
+                  <div className="pit-detail-top">
+                    <img
+                      className="pit-detail-top-watermark"
+                      src={osbornTableBg}
+                      alt=""
+                      aria-hidden="true"
+                    />
+
+                    <img
+                      className="pit-detail-top-signature"
+                      src={osbornHand}
+                      alt=""
+                      aria-hidden="true"
+                    />
+
+                    <img
+                      className="pit-detail-top-emblem"
+                      src={osbornTableBg}
+                      alt=""
+                      aria-hidden="true"
+                    />
+
+                    <span className="pit-detail-kicker">
+                      ISSUE
+                    </span>
+
+                    <h2>
+                      <button
+                        type="button"
+                        className="pit-detail-title-return"
+                        onClick={backToList}
+                        title="点击标题返回完整列表"
+                      >
+                        {selectedItem.title}
+                      </button>
+                    </h2>
+
                     <span
-                      className={`px-2 py-1 rounded-full text-xs border ${getCategoryStyle(
-                        selectedItem.category
-                      )}`}
+                      className={`pit-category-tag pit-category-tag--${
+                        selectedItem.category ===
+                          '生日活动' ||
+                        selectedItem.category ===
+                          '线下活动'
+                          ? 'blue'
+                          : 'red'
+                      } pit-detail-category`}
                     >
                       {selectedItem.category}
                     </span>
-                    <span className="text-sm text-gray-400">{selectedItem.date}</span>
+
+                    <p className="pit-detail-summary">
+                      {selectedItem.subDesc}
+                    </p>
                   </div>
+
+                  <div className="pit-detail-content">
+                    <div className="pit-detail-columns">
+                      <div className="pit-detail-column pit-detail-column--left">
+                        {renderDetailBlock(
+                          'overview',
+                          '事件概述',
+                          'OVERVIEW',
+                          'overview',
+                          'pit-detail-block--overview'
+                        )}
+
+                        {renderDetailBlock(
+                          'issue',
+                          '问题点',
+                          'ISSUES',
+                          'issue',
+                          'pit-detail-block--issue'
+                        )}
+
+                        {renderDetailBlock(
+                          'link',
+                          '维权地址',
+                          'ADDRESS',
+                          'link',
+                          'pit-detail-block--address'
+                        )}
+                      </div>
+
+                      <div className="pit-detail-column pit-detail-column--middle">
+                        {renderDetailBlock(
+                          'demand',
+                          '具体诉求',
+                          'DEMANDS',
+                          'demand',
+                          'pit-detail-block--demand'
+                        )}
+
+                        {renderDetailBlock(
+                          'text',
+                          '维权文案',
+                          'TEXT',
+                          'text',
+                          'pit-detail-block--text'
+                        )}
+                      </div>
+
+                      <div className="pit-detail-column pit-detail-column--progress">
+                        <div className="pit-detail-block-heading pit-detail-progress-heading">
+                          <span className="pit-detail-glyph">
+                            <DetailGlyph kind="progress" />
+                          </span>
+
+                          <span className="pit-detail-block-cn">
+                            当前进展
+                          </span>
+
+                          <span className="pit-detail-block-en">
+                            PROGRESS
+                          </span>
+                        </div>
+
+                        <span
+                          className={`pit-detail-progress-status pit-detail-progress-status--${
+                            selectedItem.status ===
+                            '未处理'
+                              ? 'pending'
+                              : selectedItem.status ===
+                                '已修改'
+                              ? 'updated'
+                              : 'replied'
+                          }`}
+                        >
+                          <span className="pit-status-dot" />
+                          {selectedItem.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <div
+                  className={`pit-detail-decoration ${
+                    detailVisible
+                      ? 'pit-detail-decoration--visible'
+                      : ''
+                  }`}
+                  aria-hidden="true"
+                >
+                  <img
+                    className="pit-detail-bullet"
+                    src={glitterBullet}
+                    alt=""
+                  />
+
+                  <img
+                    className="pit-detail-helmet"
+                    src={helmetImg}
+                    alt=""
+                  />
                 </div>
-              </div>
+              </>
+            )}
+
+            <div className="pit-footer-text">
+              ALL FOR OSBORN
             </div>
-
-            {/* 中间折叠内容区 */}
-            <div className="relative z-20 flex-1 min-h-0 overflow-y-auto p-5 space-y-3">
-              <div className="border border-gray-700 rounded bg-neutral-900/70">
-                <button
-                  onClick={() => toggleCollapse('overview')}
-                  className="w-full flex justify-between p-3 bg-neutral-800/80 text-left text-sm"
-                >
-                  <span>📌 事件概述 OVERVIEW</span>
-                  <span>{collapseMap.overview ? '▼' : '▶'}</span>
-                </button>
-                {collapseMap.overview && (
-                  <div className="p-3 text-sm whitespace-pre-line">
-                    {selectedItem.overview}
-                    <button
-                      onClick={() => copyText(selectedItem.overview)}
-                      className="mt-2 px-2 py-1 bg-neutral-700 text-xs rounded hover:bg-neutral-600"
-                    >
-                      复制概述
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="border border-gray-700 rounded bg-neutral-900/70">
-                <button
-                  onClick={() => toggleCollapse('issue')}
-                  className="w-full flex justify-between p-3 bg-neutral-800/80 text-left text-sm"
-                >
-                  <span>❗ 问题点 ISSUES</span>
-                  <span>{collapseMap.issue ? '▼' : '▶'}</span>
-                </button>
-                {collapseMap.issue && (
-                  <div className="p-3 text-sm whitespace-pre-line">
-                    {selectedItem.issue}
-                    <button
-                      onClick={() => copyText(selectedItem.issue)}
-                      className="mt-2 px-2 py-1 bg-neutral-700 text-xs rounded hover:bg-neutral-600"
-                    >
-                      复制问题点
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="border border-gray-700 rounded bg-neutral-900/70">
-                <button
-                  onClick={() => toggleCollapse('demand')}
-                  className="w-full flex justify-between p-3 bg-neutral-800/80 text-left text-sm"
-                >
-                  <span>🎯 具体诉求 DEMANDS</span>
-                  <span>{collapseMap.demand ? '▼' : '▶'}</span>
-                </button>
-                {collapseMap.demand && (
-                  <div className="p-3 text-sm whitespace-pre-line">
-                    {selectedItem.demand}
-                    <button
-                      onClick={() => copyText(selectedItem.demand)}
-                      className="mt-2 px-2 py-1 bg-neutral-700 text-xs rounded hover:bg-neutral-600"
-                    >
-                      复制诉求
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="border border-gray-700 rounded bg-neutral-900/70">
-                <button
-                  onClick={() => toggleCollapse('text')}
-                  className="w-full flex justify-between p-3 bg-neutral-800/80 text-left text-sm"
-                >
-                  <span>📝 维权文案 TEXT</span>
-                  <span>{collapseMap.text ? '▼' : '▶'}</span>
-                </button>
-                {collapseMap.text && (
-                  <div className="p-3 text-sm whitespace-pre-line">
-                    {selectedItem.textContent}
-                    <button
-                      onClick={() => copyText(selectedItem.textContent)}
-                      className="mt-2 px-2 py-1 bg-neutral-700 text-xs rounded hover:bg-neutral-600"
-                    >
-                      复制文案
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="border border-gray-700 rounded bg-neutral-900/70">
-                <button
-                  onClick={() => toggleCollapse('link')}
-                  className="w-full flex justify-between p-3 bg-neutral-800/80 text-left text-sm"
-                >
-                  <span>🔗 维权地址 ADDRESS</span>
-                  <span>{collapseMap.link ? '▼' : '▶'}</span>
-                </button>
-                {collapseMap.link && (
-                  <div className="p-3 flex items-center gap-3 text-sm">
-                    {selectedItem.link ? (
-                      <a
-                        href={selectedItem.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-400 hover:text-blue-300 underline break-all"
-                      >
-                        {selectedItem.link}
-                      </a>
-                    ) : (
-                      <span className="text-gray-400">暂无链接</span>
-                    )}
-                    <button
-                      onClick={() => copyText(selectedItem.link)}
-                      className="px-2 py-1 bg-neutral-700 text-xs rounded hover:bg-neutral-600 whitespace-nowrap"
-                    >
-                      复制链接
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 底部状态区：处理状态 + 操作按钮 */}
-            <div className="relative z-20 mt-auto p-4 border-t border-gray-800 bg-neutral-900/80">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-400">处理状态：</span>
-                  <span className="flex items-center gap-2 text-sm">
-                    <span
-                      className={`w-2 h-2 rounded-full ${getStatusColor(
-                        selectedItem.status
-                      )}`}
-                    ></span>
-                    {selectedItem.status}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button className="px-3 py-1.5 bg-neutral-700 text-xs rounded hover:bg-neutral-600">
-                    参与方式
-                  </button>
-                  <button className="px-3 py-1.5 bg-neutral-700 text-xs rounded hover:bg-neutral-600">
-                    时间线
-                  </button>
-                  <button className="px-3 py-1.5 bg-red-700 text-xs rounded hover:bg-red-600">
-                    处理结果
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          </main>
         )}
       </div>
     </div>

@@ -1,0 +1,545 @@
+/* 维修区讯号：按用户提供的 1591 × 895 Figma 截图还原。 */
+/* 仅引用 GasStationList.tsx 中原有的 src/assets 图片。 */
+.pit-viewport, .pit-viewport * { box-sizing: border-box; }
+.pit-viewport {
+  position: fixed; inset: 0; z-index: 20; overflow: hidden;
+  background: #050506; color: #fff;
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+  font-weight: 400;
+}
+.pit-viewport button, .pit-viewport input { font: inherit; }
+.pit-viewport button { cursor: pointer; }
+.pit-stage {
+  width: 1591px; height: 895px; position: absolute; left: 0; top: 0;
+  transform-origin: 0 0; overflow: hidden;
+}
+.pit-splash, .pit-scene {
+  position: relative; width: 1591px; height: 895px;
+  background-position: center; background-repeat: no-repeat; background-size: cover;
+}
+.pit-splash-entry {
+  position: absolute; top: 4%; left: 2%; width: 36%; height: 72%;
+  padding: 0; border: 0; background: transparent;
+}
+.pit-scene-shade { position: absolute; inset: 0; background: rgba(0,0,0,.13); pointer-events: none; }
+.pit-header { position: absolute; z-index: 5; inset: 0 0 auto 0; height: 203px; }
+.pit-back {
+  position: absolute; left: 32px; top: 22px; width: 55px; height: 52px;
+  padding: 0; border: none; background: transparent; color: #f51c45;
+}
+.pit-back:hover { color: #ff4567; }
+.pit-brand { position: absolute; left: 111px; top: 43px; }
+.pit-brand h1 {
+  font-size: 57px; line-height: 1.05; letter-spacing: -2.5px;
+  font-weight: 900; color: #fff; margin: 0; white-space: nowrap;
+}
+.pit-brand > div {
+  color: #f01b45; font-size: 40px; font-family: Arial, sans-serif;
+  font-weight: 800; letter-spacing: -1px; margin-top: 8px; line-height: 1;
+}
+.pit-red-slash {
+  position: absolute; left: 428px; top: 52px; width: 5px; height: 102px;
+  background: #f21a43; transform: rotate(18deg);
+}
+.pit-headline { position: absolute; left: 473px; top: 82px; }
+.pit-headline > div { font-size: 19px; font-weight: 700; line-height: 1.35; white-space: nowrap; }
+.pit-headline p {
+  margin: 10px 0 0; color: #e1e1e2; font-family: Arial, sans-serif;
+  font-size: 13px; white-space: nowrap; letter-spacing: .05px;
+}
+.pit-system {
+  position: absolute; right: 39px; top: 29px; width: 125px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 0; border: 0; color: #fff; background: transparent;
+  text-align: left; font-size: 12px; line-height: 16px;
+}
+.pit-system-chevrons { color: #ff2444; font-size: 34px; line-height: 25px; font-weight: 300; }
+.pit-search {
+  position: absolute; left: 1018px; top: 108px; width: 541px; height: 42px;
+  display: flex; align-items: center; border: 1px solid rgba(220,220,224,.78);
+  background: rgba(0,0,0,.52);
+}
+.pit-search-icon { flex: 0 0 auto; margin-left: 9px; color: #fff; }
+.pit-search input {
+  flex: 1; min-width: 0; height: 100%; border: 0; outline: 0;
+  padding: 0 8px; color: #fff; background: transparent; font-size: 13px;
+}
+.pit-search input::placeholder { color: #ddd; opacity: 1; }
+.pit-search-enter { font-size: 13px; color: #fff; white-space: nowrap; margin: 0 8px; }
+.pit-search > button {
+  align-self: stretch; width: 63px; flex: 0 0 63px; border: 0;
+  color: #fff; background: #f01a44; font-size: 14px; padding: 0;
+}
+.pit-search > button:hover { background: #ff3158; }
+
+/* 左侧表格，严格采用截图的宽度、行高和五列结构。 */
+.pit-table {
+  position: absolute; z-index: 3; left: 45px; top: 203px;
+  width: 1151px; height: 627px; border: 2px solid rgba(169,169,173,.62);
+  border-top-color: #f21d45; background: rgba(7,9,11,.94);
+  overflow: hidden;
+}
+.pit-table-head {
+  height: 39px; display: grid;
+  grid-template-columns: 66px 479px 187px 223px 192px;
+  align-items: center; background: #a3a4aa; color: #0b0b0c;
+  font-size: 19px; font-weight: 800; line-height: 1;
+}
+.pit-table-head > span { white-space: nowrap; }
+.pit-table-head-index { text-align: center; }
+.pit-table-head small { font-size: 12px; font-weight: 400; color: #f8f8fa; margin-left: 3px; }
+.pit-table-body {
+  position: relative; height: calc(100% - 39px); overflow-y: auto;
+  overflow-x: hidden; background: rgba(8,10,12,.95);
+  scrollbar-color: #515155 #121416; scrollbar-width: thin;
+}
+.pit-table-watermark {
+  position: sticky; top: 0; left: 305px; margin: 0 0 -1px 305px;
+  width: 560px; height: 1px; z-index: 4; pointer-events: none;
+  opacity: .16; background-repeat: no-repeat; background-size: contain;
+  background-position: center;
+}
+.pit-table-watermark::before { content: ''; display: block; width: 560px; height: 540px; background: inherit; }
+.pit-record {
+  position: relative; z-index: 1; width: 100%; height: 73px;
+  display: grid; grid-template-columns: 66px 479px 187px 223px 192px;
+  align-items: center; padding: 0; margin: 0; border: 0;
+  text-align: left; color: #fff; background: rgba(7,9,11,.94);
+}
+.pit-record:nth-of-type(odd) { background: rgba(23,27,30,.94); }
+.pit-record:hover, .pit-record--selected { background: rgba(40,43,47,.96) !important; }
+.pit-record-index { padding-left: 20px; font-size: 26px; font-weight: 400; font-family: Arial, sans-serif; white-space: nowrap; }
+.pit-record-index > span { color: #f41d48; }
+.pit-record-main { min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.pit-record-title {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 18px; line-height: 22px; font-weight: 750;
+}
+.pit-record-summary {
+  font-size: 12px; color: #e6e6e8; line-height: 17px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pit-record-category { padding-left: 18px; }
+.pit-category-tag {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 73px; height: 25px; padding: 0 9px;
+  border: 2px solid; border-radius: 6px; color: #f7f7f8;
+  background: rgba(86,80,86,.36); font-size: 13px; line-height: 1;
+  font-weight: 700; white-space: nowrap;
+}
+.pit-category-tag--blue { border-color: #668cc7; background: rgba(34,59,94,.4); }
+.pit-category-tag--red { border-color: #bf5960; background: rgba(97,55,58,.4); }
+.pit-record-date { padding-left: 56px; font-size: 17px; color: #f3f3f4; font-family: Arial, sans-serif; }
+.pit-record-status {
+  display: flex; align-items: center; gap: 9px; padding-left: 35px;
+  font-size: 15px; white-space: nowrap;
+}
+.pit-status-dot { display: inline-block; flex: 0 0 auto; width: 13px; height: 13px; border-radius: 50%; background: currentColor; }
+.pit-record-status--pending { color: #d9e013; }
+.pit-record-status--updated { color: #16d43d; }
+.pit-record-status--replied { color: #27a3df; }
+.pit-table-empty { position: relative; z-index: 2; padding: 40px 0; text-align: center; font-size: 16px; color: #bbb; }
+
+/* 右侧筛选区域。 */
+.pit-filter {
+  position: absolute; z-index: 4; left: 1215px; top: 203px;
+  width: 350px; height: 290px; padding: 10px 15px;
+  background: rgba(0,0,0,.72); border: 1px solid rgba(185,185,189,.65);
+  border-top: 2px solid #b8182d;
+}
+.pit-filter-heading { font-size: 27px; font-weight: 400; line-height: 38px; white-space: nowrap; }
+.pit-filter-heading > span, .pit-date-heading > span { font-size: 16px; margin-left: 5px; }
+.pit-filter-buttons {
+  display: grid; grid-template-columns: repeat(3, 78px);
+  grid-auto-rows: 25px; column-gap: 13px; row-gap: 13px;
+  margin-top: 8px;
+}
+.pit-filter-buttons button {
+  border: 1.5px solid #bdbdbf; border-radius: 6px;
+  color: #f6f6f7; background: rgba(75,75,78,.62);
+  font-size: 13px; font-weight: 700; padding: 0; white-space: nowrap;
+}
+.pit-filter-buttons button:hover, .pit-filter-buttons button.pit-filter-active {
+  border-color: #fff; background: rgba(128,35,50,.75);
+}
+.pit-date-heading { font-size: 27px; line-height: 37px; margin-top: 33px; white-space: nowrap; }
+.pit-date-inputs { position: relative; margin: 15px 0 0 20px; }
+.pit-date-line { display: flex; align-items: center; gap: 10px; margin-bottom: 19px; height: 25px; }
+.pit-date-line input {
+  width: 77px; height: 25px; border: 1px solid #777e8b;
+  border-radius: 6px; outline: none; background: rgba(22,23,27,.66);
+  color: #fff; padding: 1px 5px; text-align: center; font-size: 14px;
+}
+.pit-date-line input:nth-of-type(2) { width: 46px; }
+.pit-date-line input:focus { border-color: #fff; }
+.pit-date-line > span { font-size: 14px; font-weight: 700; }
+.pit-date-to { position: absolute; left: 220px; top: 30px; font-size: 20px; font-weight: 800; }
+
+/* 右下角：沿用项目原有徽章、头盔图片。 */
+.pit-right-decoration { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.pit-bullet {
+  position: absolute; left: 1205px; top: 508px;
+  width: 361px; height: 285px; object-fit: contain;
+  opacity: .82; filter: brightness(1.1);
+}
+.pit-helmet {
+  position: absolute; left: 1270px; top: 600px;
+  width: 312px; height: 278px; object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,.65));
+}
+.pit-footer-text { position: absolute; z-index: 5; left: 27px; bottom: 27px; font-family: Arial, sans-serif; font-size: 12px; color: #e7e7e7; }
+
+/* 详情页：按第二张截图布局，保留原有背景与素材。 */
+.pit-table--collapsed {
+  left: 20px; top: 203px; width: 275px; height: 630px;
+  padding-left: 24px; background: rgba(4,5,7,.94);
+  border-color: rgba(152,154,158,.68); border-top-color: #f21d45;
+}
+.pit-table--collapsed .pit-table-head {
+  display: grid; grid-template-columns: 65px minmax(0,1fr);
+  height: 40px; padding: 0; font-size: 19px;
+}
+.pit-table--collapsed .pit-table-head-index { text-align: center; }
+.pit-table-small-heading {
+  display: block; border: 0; padding: 0; background: none;
+  color: #08090a; font-weight: 800; text-align: left; white-space: nowrap;
+  font-size: 19px; line-height: 1;
+}
+.pit-table-small-heading small { color: #f3f3f4; font-size: 12px; font-weight: 400; margin-left: 3px; }
+.pit-table--collapsed .pit-table-body { height: calc(100% - 40px); }
+.pit-table--collapsed .pit-table-watermark { display: none; }
+.pit-record--small {
+  height: 73px; grid-template-columns: 65px minmax(0,1fr);
+}
+.pit-record--small .pit-record-index { padding-left: 20px; font-size: 26px; }
+.pit-record--small .pit-record-title { font-size: 18px; line-height: 24px; font-weight: 700; }
+.pit-table--collapsed .pit-record--selected { background: rgba(7,9,11,.97) !important; }
+
+.pit-detail {
+  position: absolute; z-index: 4; left: 329px; top: 203px;
+  width: 1230px; height: 630px; overflow: hidden;
+  background: rgba(4,5,7,.80); color: #f7f7f8;
+  border: 1px solid rgba(177,179,181,.62); border-top-color: #f11e3e;
+  display: flex; flex-direction: column;
+}
+.pit-detail-top {
+  height: 176px; flex: 0 0 176px; position: relative;
+  overflow: hidden; background: rgba(0,0,0,.48);
+  border-bottom: 2px solid rgba(174,175,177,.55);
+}
+.pit-detail-top-watermark {
+  position: absolute; width: 610px; height: 280px;
+  left: 485px; top: -43px; object-fit: contain;
+  opacity: .15; filter: grayscale(1) brightness(1.8); pointer-events: none;
+}
+.pit-detail-top-signature {
+  position: absolute; width: 265px; height: 142px;
+  left: 305px; top: 18px; object-fit: contain;
+  opacity: .72; pointer-events: none;
+}
+.pit-detail-top-emblem {
+  position: absolute; width: 208px; height: 179px;
+  left: 946px; top: -8px; object-fit: contain;
+  opacity: .93; filter: grayscale(1) brightness(2.6) contrast(1.7); pointer-events: none;
+}
+.pit-detail-kicker {
+  position: absolute; left: 30px; top: 18px;
+  font-size: 14px; font-family: Arial, sans-serif; font-style: italic;
+  color: #e6e6e6;
+}
+.pit-detail-top h2 {
+  position: absolute; left: 30px; top: 42px; margin: 0;
+  max-width: 900px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 43px; font-weight: 850; letter-spacing: -1px; line-height: 1.3;
+  color: #fff;
+}
+.pit-detail-category { position: absolute; left: 30px; top: 105px; height: 25px; min-width: 75px; }
+.pit-detail-summary {
+  position: absolute; left: 30px; bottom: 20px; max-width: 800px;
+  margin: 0; color: #f1f1f2; font-size: 13px; line-height: 19px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pit-detail-content {
+  position: relative; flex: 1; min-height: 0; overflow-y: auto;
+  background: rgba(0,0,0,.37);
+  scrollbar-color: #515155 #111; scrollbar-width: thin;
+}
+.pit-detail-columns {
+  display: grid; grid-template-columns: 425px 486px 1fr;
+  column-gap: 22px; padding: 27px 24px 20px 30px;
+  min-height: 100%;
+}
+.pit-detail-column { min-width: 0; display: flex; flex-direction: column; }
+.pit-detail-block { min-width: 0; }
+.pit-detail-block-heading { height: 32px; display: flex; align-items: center; gap: 0; }
+.pit-detail-block-toggle {
+  height: 32px; display: inline-flex; align-items: center;
+  gap: 12px; border: 0; padding: 0; margin: 0;
+  background: transparent; color: #f4f4f4; text-align: left;
+}
+.pit-detail-glyph {
+  flex: 0 0 31px; width: 31px; height: 31px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #fff; border: 1px solid #bb6067;
+  background: linear-gradient(145deg, #f7e4e2 -50%, #8d232d 32%, #380408 92%);
+  box-shadow: inset 0 0 2px rgba(255,255,255,.75), 0 0 2px rgba(242,50,60,.4);
+}
+.pit-detail-block-cn { font-size: 17px; white-space: nowrap; line-height: 1.2; }
+.pit-detail-block-en {
+  margin-left: 0; color: #9d9da0; font-size: 13px;
+  font-family: Arial, sans-serif; font-weight: 400; white-space: nowrap;
+}
+.pit-detail-block-body {
+  margin: 10px 0 0 44px; font-size: 13px; line-height: 18px;
+  color: #f1f1f2; white-space: pre-line; overflow-wrap: anywhere;
+}
+.pit-detail-bullets { padding-left: 15px; list-style-type: disc; white-space: normal; }
+.pit-detail-bullets li { margin: 0; padding: 0; }
+.pit-detail-numbered { padding-left: 17px; list-style-type: decimal; white-space: normal; }
+.pit-detail-numbered li { margin: 0; padding: 0; }
+.pit-detail-block--overview { min-height: 120px; }
+.pit-detail-block--issue { margin-top: 0; }
+.pit-detail-block--address { margin-top: auto; display: flex; align-items: center; min-height: 42px; }
+.pit-detail-block--address .pit-detail-block-heading { flex: 0 0 auto; }
+.pit-detail-address-actions { margin-left: auto; margin-right: 0; }
+.pit-detail-link-control {
+  display: inline-flex; height: 41px; align-items: center;
+  border: 1px solid rgba(188,190,195,.65); border-radius: 7px;
+  background: rgba(27,28,31,.58); color: #fff;
+}
+.pit-detail-link-control button {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 10px 0 13px; height: 100%; border: 0; background: transparent;
+  color: #fff; font-size: 14px; white-space: nowrap;
+}
+.pit-detail-link-control button:disabled { opacity: .55; cursor: default; }
+.pit-detail-link-control a { display: inline-flex; align-items: center; padding: 0 9px 0 0; color: #fff; height: 100%; }
+.pit-detail-block--demand { min-height: 175px; }
+.pit-detail-block--text { margin-top: 0; }
+.pit-detail-copy-icon {
+  border: 0; padding: 0; margin-left: 2px; color: #fff;
+  background: transparent; display: inline-flex; align-items: center;
+}
+.pit-detail-column--progress { align-items: flex-start; }
+.pit-detail-progress-heading { white-space: nowrap; gap: 12px; }
+.pit-detail-progress-status {
+  margin: 13px 0 0 44px; width: 134px; height: 41px;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 18px; border: 1px solid rgba(172,156,64,.65);
+  border-radius: 6px; background: rgba(17,16,8,.68);
+  font-size: 16px; white-space: nowrap;
+}
+.pit-detail-progress-status .pit-status-dot { width: 14px; height: 14px; }
+.pit-detail-progress-status--pending { color: #d9e013; }
+.pit-detail-progress-status--updated { color: #17d741; border-color: rgba(42,168,70,.6); }
+.pit-detail-progress-status--replied { color: #30a7e0; border-color: rgba(48,167,224,.6); }
+.pit-detail-decoration { position: absolute; z-index: 6; inset: 0; pointer-events: none; }
+.pit-detail-bullet {
+  position: absolute; left: 1290px; top: 512px;
+  width: 282px; height: 270px; object-fit: contain;
+  opacity: .82; filter: brightness(1.1);
+}
+.pit-detail-helmet {
+  position: absolute; left: 1317px; top: 655px;
+  width: 285px; height: 245px; object-fit: contain;
+  filter: drop-shadow(0 10px 15px rgba(0,0,0,.65));
+}
+/* ============================================
+   维修区讯号：列表与详情双向平滑切换
+   ============================================ */
+
+/* 左侧表格：宽度、位置平滑变化 */
+.pit-table {
+  transition:
+    left 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    padding-left 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 480ms ease;
+
+  will-change: left, width;
+}
+
+/* 两种列表内容叠放，使用透明度切换 */
+.pit-table-view {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transition: opacity 240ms ease;
+}
+
+/* 完整表格 */
+.pit-table-view--full {
+  width: 1147px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 窄列表 */
+.pit-table-view--small {
+  width: 100%;
+}
+
+/* 收缩时：完整表格淡出 */
+.pit-table--collapsed .pit-table-view--full {
+  opacity: 0;
+  pointer-events: none;
+  transition-delay: 0ms;
+}
+
+/* 收缩时：窄列表稍后淡入 */
+.pit-table--collapsed .pit-table-view--small {
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 160ms;
+}
+
+/* 展开时：完整表格稍后淡入 */
+.pit-table:not(.pit-table--collapsed) .pit-table-view--full {
+  transition-delay: 150ms;
+}
+
+.pit-table:not(.pit-table--collapsed) .pit-table-view--small {
+  transition-delay: 0ms;
+}
+
+/* 保持完整表格的列宽 */
+.pit-table--collapsed .pit-table-view--full .pit-table-head {
+  grid-template-columns: 66px 479px 187px 223px 192px;
+  height: 39px;
+  font-size: 19px;
+}
+
+.pit-table-view--full .pit-table-body {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 窄列表表头 */
+.pit-table-view--small .pit-table-head {
+  display: grid;
+  grid-template-columns: 65px minmax(0, 1fr);
+
+  height: 40px;
+  padding: 0;
+  font-size: 19px;
+}
+
+.pit-table-view--small .pit-table-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.pit-table-view--small .pit-table-watermark {
+  display: none;
+}
+
+.pit-table-view--small .pit-record--small {
+  grid-template-columns: 65px minmax(0, 1fr);
+  height: 73px;
+}
+
+/* 搜索框渐隐 */
+.pit-search {
+  transition:
+    opacity 240ms ease,
+    transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pit-search--hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}
+
+/* 筛选框渐隐 */
+.pit-filter {
+  transition:
+    opacity 280ms ease,
+    transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pit-filter--hidden {
+  opacity: 0;
+  transform: translateX(16px);
+  pointer-events: none;
+}
+
+/* 列表页头盔与徽章渐隐 */
+.pit-right-decoration {
+  transition: opacity 350ms ease;
+}
+
+.pit-right-decoration--hidden {
+  opacity: 0;
+}
+
+/* 详情面板渐显、渐隐 */
+.pit-detail {
+  opacity: 0;
+  transform: translateX(18px);
+  pointer-events: none;
+
+  transition:
+    opacity 340ms ease,
+    transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pit-detail--visible {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* 详情页头盔与徽章渐显 */
+.pit-detail-decoration {
+  opacity: 0;
+  transition: opacity 360ms ease;
+}
+
+.pit-detail-decoration--visible {
+  opacity: 1;
+}
+
+/* 点击详情大标题返回列表 */
+.pit-detail-title-return {
+  display: block;
+  padding: 0;
+  border: 0;
+
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  line-height: inherit;
+
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pit-detail-title-return:focus-visible,
+.pit-table-small-heading:focus-visible,
+.pit-record:focus-visible {
+  outline: 2px solid #f01b45;
+  outline-offset: -2px;
+}
+
+/* 系统启用减少动画效果时关闭过渡 */
+@media (prefers-reduced-motion: reduce) {
+  .pit-table,
+  .pit-table-view,
+  .pit-search,
+  .pit-filter,
+  .pit-right-decoration,
+  .pit-detail,
+  .pit-detail-decoration {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}
