@@ -53,9 +53,11 @@
   position: relative;
   width: 1591px;
   height: 895px;
+
   background-position: center;
   background-repeat: no-repeat;
-  background-size: cover;
+  background-size: contain;
+  background-color: #050506;
 }
 
 .pit-splash-entry {
@@ -69,12 +71,27 @@
   background: transparent;
 }
 
+
 .pit-scene-shade {
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, .13);
+
+  /* 根据 Figma 矩形尺寸换算 */
+  left: 27px;
+  top: 26px;
+  width: 1538px;
+  height: 843px;
+
+  z-index: 0;
   pointer-events: none;
+
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.49) 0%,
+    rgba(0, 0, 0, 0.72) 50%,
+    rgba(0, 0, 0, 0.86) 100%
+  );
 }
+
 
 /* ================= 顶部 ================= */
 
@@ -567,6 +584,7 @@
   font-weight: 800;
 }
 
+
 /* ================= 列表页装饰 ================= */
 
 .pit-right-decoration {
@@ -576,27 +594,31 @@
   pointer-events: none;
 }
 
+/* 后方 GLITTER 装饰图 */
 .pit-bullet {
   position: absolute;
-  left: 1205px;
-  top: 508px;
-  width: 361px;
-  height: 285px;
+  left: 1135px;
+  top: 500px;
+  width: 445px;
+  height: 360px;
   object-fit: contain;
-  opacity: .82;
-  filter: brightness(1.1);
+  opacity: 1;
+  filter: brightness(1.4) contrast(1.15);
+  z-index: 1;
 }
 
+/* 前方头盔图片 */
 .pit-helmet {
   position: absolute;
-  left: 1270px;
-  top: 600px;
-  width: 312px;
-  height: 278px;
+  left: 1220px;
+  top: 560px;
+  width: 385px;
+  height: 350px;
   object-fit: contain;
-  filter:
-    drop-shadow(0 8px 18px rgba(0, 0, 0, .65));
+  z-index: 2;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.65));
 }
+
 
 .pit-footer-text {
   position: absolute;

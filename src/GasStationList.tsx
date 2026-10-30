@@ -74,9 +74,9 @@ const mockBackendDb: BackendRecordItem[] = [
   {
     id: 1004,
     category_id: 4,
-    title: '250好感度情头相关',
+    title: '520好感度情头相关',
     category_name: '美术物料',
-    summary: '萧逸250好感度情头背景缺少装饰，蓝色配色问题',
+    summary: '萧逸520好感度情头背景缺少装饰，蓝色配色问题',
     content: '调整背景配色，增加细节装饰，统一画面光影风格，贴合萧逸蓝色主调。',
     related_url: 'https://example.com/link4',
     created_at: '2026-08-13T10:00:00+08:00',
@@ -103,6 +103,26 @@ const mockBackendDb: BackendRecordItem[] = [
   },
   {
     id: 1007,
+    category_id: 2,
+    title: '主线剧情台词校对',
+    category_name: '文案内容',
+    summary: '主线部分台词人设偏差，需要校对修正',
+    content: '统一萧逸人物说话口吻，修正OOC台词，梳理对话逻辑。',
+    related_url: 'https://example.com/link7',
+    created_at: '2026-09-02T10:00:00+08:00',
+  },
+  {
+    id: 1008,
+    category_id: 2,
+    title: '主线剧情台词校对',
+    category_name: '文案内容',
+    summary: '主线部分台词人设偏差，需要校对修正',
+    content: '统一萧逸人物说话口吻，修正OOC台词，梳理对话逻辑。',
+    related_url: 'https://example.com/link7',
+    created_at: '2026-09-02T10:00:00+08:00',
+  },
+  {
+    id: 1009,
     category_id: 2,
     title: '主线剧情台词校对',
     category_name: '文案内容',
@@ -266,7 +286,7 @@ function backendToFrontend(
     1001: '26年生日',
     1002: '「全速等待」文案',
     1003: '恶龙塑相关',
-    1004: '250情头相关',
+    1004: '520情头相关',
     1005: '音乐会票根相关',
   };
 
@@ -712,6 +732,7 @@ const GasStationPage: React.FC = () => {
               <span
                 className={`pit-category-tag pit-category-tag--${
                   item.category === '生日活动' ||
+                  item.category === '文案内容' ||
                   item.category === '线下活动'
                     ? 'blue'
                     : 'red'

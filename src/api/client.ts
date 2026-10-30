@@ -467,16 +467,25 @@ export async function apiRequest<T>(
    * Token 失效
    */
   if (
-    response.status === 401
+  response.status === 401 &&
+  auth &&
+  headers.has("Authorization")
+) {
+  const requestAuthorization =
+    headers.get("Authorization");
+
+  // 避免旧请求的 401 清除刚刚切换账号后保存的新 Token。
+  if (
+    requestAuthorization &&
+    requestAuthorization === getAuthorizationHeader()
   ) {
     clearAuthToken();
 
     window.dispatchEvent(
-      new Event(
-        AUTH_UNAUTHORIZED_EVENT
-      )
+      new Event(AUTH_UNAUTHORIZED_EVENT)
     );
   }
+}
 
   /**
    * 其他非成功状态
