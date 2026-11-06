@@ -2399,10 +2399,9 @@
 }
 
 /* =====================================================================
-   MOBILE FIGMA — 667 × 375 canvas / 294 × 196 auth dialog
-   The only layout breakpoint is 1024 CSS pixels.
-   All mobile geometry is authored at the Figma dialog's native dimensions.
-   React applies one common transform scale to the complete auth card.
+   MOBILE FIGMA — 667 × 375 canvas / 426 × 284 visible auth dialog
+   Internal legacy coordinates are 294 × 196 and scale uniformly to 426 × 284.
+   Independent result dialogs and pickers use their own Figma sizes.
    Desktop rules above this block are intentionally left unchanged.
    ===================================================================== */
 @media (max-width: 1023px) {
@@ -3103,7 +3102,7 @@
     text-align: center;
   }
 
-  /* Result dialogs and selection menus use the same mobile scale as auth. */
+  /* Result dialogs and menus are independent Figma sizes, not the main 426×284. */
   .figma-auth-result-overlay,
   .figma-auth-picker-overlay,
   .figma-auth-forgot-success-overlay {
@@ -3114,10 +3113,11 @@
     overflow: hidden;
     background: rgba(217, 222, 231, .72);
   }
+  /* All normal success/error status dialogs: Figma 344.86 × 235.31. */
   .figma-auth-result-card {
     width: 294px !important;
-    height: 196px !important;
-    min-height: 196px !important;
+    height: 200.606449px !important;
+    min-height: 200.606449px !important;
     max-width: none !important;
     max-height: none !important;
     flex: none;
@@ -3125,7 +3125,7 @@
     padding: 22px 16px 14px !important;
     border-radius: 12px !important;
     background: #f4f6fc;
-    transform: scale(var(--auth-mobile-scale, 1));
+    transform: scale(var(--auth-mobile-result-scale, 1.1729931973));
     transform-origin: center center;
   }
   .figma-auth-result-icon {
@@ -3160,6 +3160,7 @@
   }
   .figma-auth-result-footer { margin: 6px 0 0; font-size: 9px; line-height: 13px; }
 
+  /* Password reset success: Figma 365.14 × 223.14. */
   .figma-auth-forgot-success-dialog {
     width: 252px !important;
     height: 154px !important;
@@ -3169,7 +3170,7 @@
     flex: none;
     padding: 18px 14px 12px;
     border-radius: 12px !important;
-    transform: scale(var(--auth-mobile-scale, 1));
+    transform: scale(var(--auth-mobile-success-scale, 1.448968254));
     transform-origin: center center;
   }
   .figma-auth-forgot-success-close { top: 6px; right: 7px; width: 17px; height: 17px; padding: 0; font-size: 14px; }
@@ -3190,13 +3191,27 @@
     overflow: hidden;
     border-radius: 11px;
     background: #fff;
-    transform: scale(var(--auth-mobile-scale, 1));
+    transform: scale(var(--auth-mobile-picker-scale, 1.177870968));
     transform-origin: center center;
   }
-  .figma-auth-picker--question { width: 310px !important; height: 188px; min-height: 188px; }
-  .figma-auth-picker--date,
-  .figma-auth-picker--date:has(.figma-auth-picker-months) { width: 310px !important; height: 205px !important; min-height: 205px; }
-  .figma-auth-picker--date:has(.figma-auth-picker-days) { width: 310px !important; height: 215px !important; min-height: 215px; }
+  /* Three security-question menus: Figma 365.14 × 219.09. */
+  .figma-auth-picker--question {
+    width: 310px !important;
+    height: 186.005094px !important;
+    min-height: 186.005094px !important;
+  }
+  /* Month menu: Figma 365.14 × 239.37. */
+  .figma-auth-picker--date:has(.figma-auth-picker-months) {
+    width: 310px !important;
+    height: 203.222600px !important;
+    min-height: 203.222600px !important;
+  }
+  /* Day menu: Figma 365.14 × 312.40. */
+  .figma-auth-picker--date:has(.figma-auth-picker-days) {
+    width: 310px !important;
+    height: 265.224298px !important;
+    min-height: 265.224298px !important;
+  }
   .figma-auth-picker-heading { height: 23px; min-height: 0; margin: 0 0 8px; font-size: 10px; line-height: 14px; }
   .figma-auth-picker-heading button { width: 20px; height: 20px; min-height: 0; padding: 0; font-size: 16px; }
   .figma-auth-picker-questions { gap: 4px; }
@@ -3229,7 +3244,7 @@
     font-size: 10px;
     line-height: 14px;
   }
-  .figma-auth-picker-days button { height: 27px; border-radius: 50%; }
+  .figma-auth-picker-days button { height: 39px; border-radius: 50%; }
 
   /* This page's guest-mode view is out of the popup and keeps its normal flow. */
   .figma-auth-guest-page { padding: 16px; }

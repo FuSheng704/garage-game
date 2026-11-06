@@ -931,18 +931,29 @@ const forgotRequestVersionRef = useRef(0);
             : 720
           : 800;
 
-  // 1024px 以下使用 294 × 196 的独立横向移动端 Figma 画布。
-  // 1024px 及以上保留原桌面 600px 画布与缩放逻辑。
+  // Figma 移动端设计画布 667 × 375：六个主窗口统一为 426 × 284。
+  // 仅在视口容纳不下设计尺寸时等比缩小，不改变内部布局或字体比例。
   const isMobileLayout = viewportWidth < 1024;
-
-  // 667 × 375 设计画布中的弹窗为 294 × 196。
-  // 移动端所有文字、输入框、按钮与装饰跟随同一个 scale 缩放。
-  // 不根据屏幕方向切换布局，也不对某个字体单独设最小值。
+  const MOBILE_FIGMA_WIDTH = 426;
+  const MOBILE_FIGMA_HEIGHT = 284;
+  const MOBILE_NATIVE_WIDTH = 294;
+  const MOBILE_NATIVE_HEIGHT = 196;
   const mobileScale = Math.min(
     1,
-    Math.max(0.1, (viewportWidth - 16) / 294),
-    Math.max(0.1, viewportHeight - 16) / 196
+    Math.max(0.1, (viewportWidth - 16) / MOBILE_FIGMA_WIDTH),
+    Math.max(0.1, (viewportHeight - 16) / MOBILE_FIGMA_HEIGHT)
   );
+
+  // 原移动端内部布局以 294 × 196 坐标编写；只统一等比放大至
+  // 新 Figma 的 426 × 284。独立弹窗采用各自的 Figma 尺寸。
+  const mobileMainTransformScale =
+    mobileScale * (MOBILE_FIGMA_WIDTH / MOBILE_NATIVE_WIDTH);
+  const mobileResultTransformScale =
+    mobileScale * (344.86 / 294);
+  const mobileSuccessTransformScale =
+    mobileScale * (365.14 / 252);
+  const mobilePickerTransformScale =
+    mobileScale * (365.14 / 310);
 
   // 桌面端以 Figma 原始尺寸为基准，同时受视口宽度和高度约束。
   // 长页面（如忘记密码 600 × 1080）在较矮窗口中整体等比缩小，
@@ -1975,15 +1986,20 @@ const handleForgotStepTwo = async (
   return (
     <main
       className="figma-auth-page"
-      style={isMobileLayout ? ({ "--auth-mobile-scale": mobileScale } as CSSProperties) : undefined}
+      style={isMobileLayout ? ({
+        "--auth-mobile-scale": mobileScale,
+        "--auth-mobile-result-scale": mobileResultTransformScale,
+        "--auth-mobile-success-scale": mobileSuccessTransformScale,
+        "--auth-mobile-picker-scale": mobilePickerTransformScale,
+      } as CSSProperties) : undefined}
     >
       <div
         className="figma-auth-stage"
         style={
           isMobileLayout
             ? {
-                width: 294 * mobileScale,
-                height: 196 * mobileScale,
+                width: MOBILE_FIGMA_WIDTH * mobileScale,
+                height: MOBILE_FIGMA_HEIGHT * mobileScale,
                 margin: "auto",
               }
             : {
@@ -2001,11 +2017,11 @@ const handleForgotStepTwo = async (
           style={
             isMobileLayout
               ? {
-                  width: 294,
-                  height: 196,
-                  minHeight: 196,
+                  width: MOBILE_NATIVE_WIDTH,
+                  height: MOBILE_NATIVE_HEIGHT,
+                  minHeight: MOBILE_NATIVE_HEIGHT,
                   boxSizing: "border-box",
-                  transform: `scale(${mobileScale})`,
+                  transform: `scale(${mobileMainTransformScale})`,
                   transformOrigin: "top left",
                 }
               : {
