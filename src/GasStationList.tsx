@@ -215,6 +215,8 @@ type StagePosition = {
   scale: number;
   left: number;
   top: number;
+  isMobile: boolean;
+  isPortrait: boolean;
 };
 
 /**
@@ -233,22 +235,29 @@ function calculateStagePosition(
   const width = Math.max(1, viewportWidth);
   const height = Math.max(1, viewportHeight);
 
-  const scale = Math.min(
-    width / DESIGN_WIDTH,
-    height / DESIGN_HEIGHT
-  );
+  // 桌面端沿用原有 1591×895 画布与等比缩放逻辑，不改动其布局。
+  // 1024px 以下切换到 Figma 的 667×375 移动端横屏画布；
+  // 竖屏使用同一套元素的 375×667 重排布局。
+  const isMobile = width < 1024;
+  const isPortrait = isMobile && height >= width;
+  const designWidth = isMobile ? (isPortrait ? 375 : 667) : DESIGN_WIDTH;
+  const designHeight = isMobile ? (isPortrait ? 667 : 375) : DESIGN_HEIGHT;
+
+  const scale = Math.min(width / designWidth, height / designHeight);
 
   return {
     scale,
-    left: (width - DESIGN_WIDTH * scale) / 2,
-    top: (height - DESIGN_HEIGHT * scale) / 2,
+    left: (width - designWidth * scale) / 2,
+    top: (height - designHeight * scale) / 2,
+    isMobile,
+    isPortrait,
   };
 }
 
 function useStagePosition(): StagePosition {
   const [position, setPosition] = useState<StagePosition>(() =>
     typeof window === 'undefined'
-      ? { scale: 1, left: 0, top: 0 }
+      ? { scale: 1, left: 0, top: 0, isMobile: false, isPortrait: false }
       : calculateStagePosition(
           window.innerWidth,
           window.innerHeight
@@ -422,6 +431,8 @@ const GasStationPage: React.FC = () => {
 
   const closeTimerRef = useRef<number | null>(null);
   const revealTimerRef = useRef<number | null>(null);
+  const [copyNotice, setCopyNotice] = useState<string | null>(null);
+  const copyNoticeTimerRef = useRef<number | null>(null);
 
   const [collapseMap, setCollapseMap] =
     useState<Record<CollapseKey, boolean>>({
@@ -429,6 +440,8 @@ const GasStationPage: React.FC = () => {
     });
 
   const [searchKey, setSearchKey] = useState('');
+  // 移动端按 Figma：默认只显示右上角搜索图标，点击后展开搜索框。
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const [selectedCategoryId, setSelectedCategoryId] =
     useState<number | undefined>(undefined);
@@ -561,14 +574,27 @@ const GasStationPage: React.FC = () => {
     endMonth,
   ]);
 
-  const copyText = async (value: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      alert('复制成功');
-    } catch {
-      alert('复制失败');
-    }
-  };
+  const showCopyNotice = (message: string) => {
+  if (copyNoticeTimerRef.current !== null) {
+    window.clearTimeout(copyNoticeTimerRef.current);
+  }
+
+  setCopyNotice(message);
+
+  copyNoticeTimerRef.current = window.setTimeout(() => {
+    setCopyNotice(null);
+    copyNoticeTimerRef.current = null;
+  }, 2000);
+};
+
+const copyText = async (value: string) => {
+  try {
+    await navigator.clipboard.writeText(value);
+    showCopyNotice('复制成功');
+  } catch {
+    showCopyNotice('复制失败，请重试');
+  }
+};
 
   const toggleCollapse = (key: CollapseKey) => {
     setCollapseMap((prev) => ({
@@ -605,6 +631,7 @@ const GasStationPage: React.FC = () => {
 
     setSelectedItem(item);
     setPanelCollapsed(true);
+    setMobileSearchOpen(false);
     setCollapseMap({ ...initialCollapse });
 
     if (!wasCollapsed) {
@@ -629,6 +656,7 @@ const GasStationPage: React.FC = () => {
     setSelectedItem(null);
     setPanelCollapsed(false);
     setDetailVisible(false);
+    setMobileSearchOpen(false);
     setPage('splash');
   };
 
@@ -898,7 +926,7 @@ const GasStationPage: React.FC = () => {
   return (
     <div className="pit-viewport">
       <div
-        className="pit-stage"
+        className={`pit-stage${stage.isMobile ? ' pit-stage--mobile' : ''}${stage.isPortrait ? ' pit-stage--portrait' : ''}`}
         style={{
           transform: `translate(${stage.left}px, ${stage.top}px) scale(${stage.scale})`,
         }}
@@ -971,6 +999,13 @@ const GasStationPage: React.FC = () => {
                 <div>PIT SIGNAL</div>
               </div>
 
+              <img
+                className="pit-mobile-header-signature"
+                src={osbornHand}
+                alt=""
+                aria-hidden="true"
+              />
+
               <div
                 className="pit-red-slash"
                 aria-hidden="true"
@@ -1015,11 +1050,12 @@ const GasStationPage: React.FC = () => {
                   panelCollapsed
                     ? 'pit-search--hidden'
                     : ''
-                }`}
+                } ${mobileSearchOpen ? 'pit-search--mobile-open' : ''}`}
                 aria-hidden={panelCollapsed}
                 onSubmit={(event) => {
                   event.preventDefault();
                   searchRef.current?.blur();
+                  setMobileSearchOpen(false);
                 }}
               >
                 <svg
@@ -1072,6 +1108,26 @@ const GasStationPage: React.FC = () => {
                   搜索
                 </button>
               </form>
+
+              <button
+                type="button"
+                className={`pit-mobile-search-toggle${panelCollapsed ? ' pit-mobile-search-toggle--hidden' : ''}`}
+                onClick={() => {
+                  setMobileSearchOpen((open) => !open);
+                  if (!mobileSearchOpen) {
+                    window.requestAnimationFrame(() => searchRef.current?.focus());
+                  }
+                }}
+                aria-label={mobileSearchOpen ? '收起搜索' : '展开搜索'}
+                aria-expanded={mobileSearchOpen}
+                title={mobileSearchOpen ? '收起搜索' : '展开搜索'}
+                tabIndex={stage.isMobile && !panelCollapsed ? 0 : -1}
+              >
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+                  <circle cx="10.5" cy="10.5" r="7.5" stroke="currentColor" strokeWidth="2.2" />
+                  <path d="M16.5 16.5 L22 22" stroke="currentColor" strokeWidth="2.2" />
+                </svg>
+              </button>
             </header>
 
             <section
@@ -1523,7 +1579,17 @@ const GasStationPage: React.FC = () => {
             </div>
           </main>
         )}
-      </div>
+            </div>
+
+      {copyNotice && (
+        <div
+          className="pit-copy-toast"
+          role="status"
+          aria-live="polite"
+        >
+          {copyNotice}
+        </div>
+      )}
     </div>
   );
 };

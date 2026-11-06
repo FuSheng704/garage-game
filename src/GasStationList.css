@@ -1282,3 +1282,486 @@
     transition-delay: 0ms !important;
   }
 }
+
+
+/* ============================================================
+   移动端新增适配：Figma 5514:3609 / 5519:2592 / 5519:2973
+   只作用于 .pit-stage--mobile；桌面端原有 CSS 一字不改。
+   横屏基准 667×375，竖屏基准 375×667，统一等比缩放。
+   ============================================================ */
+
+/* 新增元素在桌面端彻底隐藏，保持桌面布局及交互不变。 */
+.pit-mobile-header-signature,
+.pit-mobile-search-toggle { display: none; }
+
+.pit-stage--mobile {
+  width: 667px;
+  height: 375px;
+  font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+}
+.pit-stage--mobile .pit-splash,
+.pit-stage--mobile .pit-scene {
+  width: 667px;
+  height: 375px;
+  background-size: cover;
+}
+.pit-stage--mobile .pit-scene-shade {
+  left: 8px; top: 6px; width: 651px; height: 363px;
+  background: rgba(0, 0, 0, .80);
+}
+.pit-stage--mobile .pit-header { height: 88px; }
+.pit-stage--mobile .pit-back {
+  left: 20px; top: 30px; width: 36px; height: 40px;
+}
+.pit-stage--mobile .pit-back svg { width: 36px; height: 40px; }
+.pit-stage--mobile .pit-brand { left: 64px; top: 30px; }
+.pit-stage--mobile .pit-brand h1 {
+  font-size: 16px; font-weight: 500; line-height: 24px;
+  letter-spacing: 0;
+}
+.pit-stage--mobile .pit-brand > div {
+  margin-top: 0; font-family: inherit; font-size: 12px;
+  line-height: 18px; letter-spacing: 0; font-weight: 600;
+}
+.pit-stage--mobile .pit-mobile-header-signature {
+  display: block; position: absolute; z-index: 0; pointer-events: none;
+  left: 345px; top: 28px; width: 100px; height: 58px;
+  object-fit: contain; opacity: .37;
+}
+.pit-stage--mobile .pit-red-slash {
+  left: 157px; top: 28px; width: 3px; height: 45px;
+  transform: rotate(20deg);
+}
+.pit-stage--mobile .pit-headline { left: 189px; top: 24px; }
+.pit-stage--mobile .pit-headline > div {
+  font-size: 10.5px; line-height: 15.5px; font-weight: 500;
+}
+.pit-stage--mobile .pit-headline p {
+  margin: 5px 0 0; width: 184px; font-family: inherit;
+  font-size: 9.5px; line-height: 14px; white-space: normal;
+}
+.pit-stage--mobile .pit-system {
+  right: 20px; top: 12px; width: 149px;
+  font-family: inherit; font-size: 9.5px; line-height: 14px;
+}
+.pit-stage--mobile .pit-system-chevrons {
+  font-size: 22px; line-height: 20px; font-weight: 700;
+}
+
+/* Figma 移动端：搜索图标为 44×44，点击后向左展开输入框。 */
+.pit-stage--mobile .pit-mobile-search-toggle {
+  display: flex; align-items: center; justify-content: center;
+  position: absolute; z-index: 9; left: 603px; top: 40px;
+  width: 44px; height: 44px; padding: 0;
+  border: 0; background: rgba(0, 0, 0, .36); color: #fff;
+}
+.pit-stage--mobile .pit-mobile-search-toggle--hidden {
+  display: none;
+}
+.pit-stage--mobile .pit-search {
+  left: 449px; top: 40px; width: 154px; height: 44px;
+  z-index: 8; border: 1px solid rgba(220, 220, 224, .78);
+  background: rgba(0, 0, 0, .92);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transform: translateX(12px);
+}
+.pit-stage--mobile .pit-search.pit-search--mobile-open:not(.pit-search--hidden) {
+  opacity: 1; visibility: visible; pointer-events: auto;
+  transform: translateX(0);
+}
+.pit-stage--mobile .pit-search-icon,
+.pit-stage--mobile .pit-search-enter { display: none; }
+.pit-stage--mobile .pit-search input {
+  font-size: 11px; padding: 0 7px;
+}
+.pit-stage--mobile .pit-search > button {
+  width: 50px; flex-basis: 50px; font-size: 11px;
+}
+
+/* 667×375 / 事件列表 */
+.pit-stage--mobile .pit-table {
+  left: 20px; top: 92px; width: 467px; height: 256px;
+  padding-left: 0; border: 1px solid #777;
+  background: #090a0d;
+}
+.pit-stage--mobile .pit-table-view--full { width: 465px; }
+.pit-stage--mobile .pit-table-head,
+.pit-stage--mobile .pit-table--collapsed .pit-table-view--full .pit-table-head {
+  height: 18px;
+  grid-template-columns: 28px 198px 81px 77px 83px;
+  background: #84878e; color: #000;
+  font-size: 10.5px; font-weight: 500; line-height: 16px;
+}
+.pit-stage--mobile .pit-table-head-index { text-align: left; padding-left: 7px; }
+.pit-stage--mobile .pit-table-head small { display: none; }
+.pit-stage--mobile .pit-table-head > span:nth-child(2) small {
+  display: inline; margin-left: 8px; font-size: 9.5px;
+  line-height: 14px; color: #fff;
+}
+.pit-stage--mobile .pit-table-body {
+  height: calc(100% - 18px); background: rgba(9, 10, 13, .84);
+}
+.pit-stage--mobile .pit-table-watermark {
+  left: 126px; margin-left: 126px; width: 210px;
+  opacity: .16;
+}
+.pit-stage--mobile .pit-table-watermark::before {
+  width: 210px; height: 216px;
+}
+.pit-stage--mobile .pit-record {
+  height: 34px; grid-template-columns: 28px 198px 81px 77px 83px;
+  background: #090a0d;
+}
+.pit-stage--mobile .pit-record:nth-of-type(odd) { background: #13171b; }
+.pit-stage--mobile .pit-record-index {
+  padding-left: 7px; font-family: inherit;
+  font-size: 10.5px; font-weight: 500;
+}
+.pit-stage--mobile .pit-record-main { gap: 1px; }
+.pit-stage--mobile .pit-record-title {
+  font-size: 11px; line-height: 16px; font-weight: 500;
+}
+.pit-stage--mobile .pit-record-summary {
+  font-size: 9px; line-height: 12px; opacity: .84;
+}
+.pit-stage--mobile .pit-record-category { padding-left: 0; }
+.pit-stage--mobile .pit-category-tag {
+  min-width: 66px; height: 20px; padding: 0 4px;
+  border-width: 1.5px; border-radius: 5px;
+  font-size: 9.5px; font-weight: 400;
+}
+.pit-stage--mobile .pit-record-date {
+  padding-left: 0; font-family: inherit; font-size: 9.5px;
+}
+.pit-stage--mobile .pit-record-status {
+  padding-left: 0; gap: 6px; font-size: 10.5px;
+}
+.pit-stage--mobile .pit-status-dot { width: 6px; height: 6px; }
+.pit-stage--mobile .pit-table-empty { padding: 20px 0; font-size: 11px; }
+
+/* 667×375 / 右侧两列筛选、日期及装饰 */
+.pit-stage--mobile .pit-right-decoration { z-index: 5; }
+.pit-stage--mobile .pit-filter {
+  left: 501px; top: 92px; width: 146px; height: 208px;
+  padding: 4px 8px; border: 1px solid #777;
+  background: rgba(0, 0, 0, .62);
+}
+.pit-stage--mobile .pit-filter-heading,
+.pit-stage--mobile .pit-date-heading {
+  font-size: 11px; font-weight: 500; line-height: 16px;
+}
+.pit-stage--mobile .pit-filter-heading > span,
+.pit-stage--mobile .pit-date-heading > span {
+  font-size: 9.5px; margin-left: 8px;
+}
+.pit-stage--mobile .pit-filter-buttons {
+  display: grid; grid-template-columns: repeat(2, 62px);
+  grid-auto-rows: 22px; column-gap: 6px; row-gap: 5px;
+  margin-top: 14px;
+}
+.pit-stage--mobile .pit-filter-buttons button {
+  border-width: 1px; border-radius: 6px;
+  font-size: 10.5px; font-weight: 400;
+}
+.pit-stage--mobile .pit-date-heading { margin-top: 4px; }
+.pit-stage--mobile .pit-date-inputs { margin: 14px 0 0; }
+.pit-stage--mobile .pit-date-line {
+  gap: 4px; height: 22px; margin-bottom: 10px;
+}
+.pit-stage--mobile .pit-date-line input {
+  width: 40px; height: 22px; padding: 0 2px;
+  font-size: 10px; border-radius: 4px;
+}
+.pit-stage--mobile .pit-date-line input:nth-of-type(2) { width: 26px; }
+.pit-stage--mobile .pit-date-line > span { font-size: 10px; }
+.pit-stage--mobile .pit-date-to { left: 121px; top: 26px; font-size: 10px; }
+.pit-stage--mobile .pit-bullet {
+  left: 487px; top: 233px; width: 129px; height: 107px;
+  filter: none; opacity: .9;
+}
+.pit-stage--mobile .pit-helmet {
+  left: 531px; top: 277px; width: 129px; height: 86px;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .65));
+}
+.pit-stage--mobile .pit-footer-text {
+  left: 20px; bottom: 7px; font-family: inherit;
+  font-size: 9.5px;
+}
+
+/* 667×375 / 详情左侧 100px 列表 */
+.pit-stage--mobile .pit-table--collapsed {
+  left: 20px; top: 92px; width: 100px; height: 256px;
+  padding-left: 0;
+}
+.pit-stage--mobile .pit-table-view--small .pit-table-head,
+.pit-stage--mobile .pit-table--collapsed .pit-table-head {
+  height: 18px; grid-template-columns: 28px 72px;
+  font-size: 10.5px;
+}
+.pit-stage--mobile .pit-table-small-heading {
+  font-size: 10.5px; font-weight: 500;
+}
+.pit-stage--mobile .pit-table-small-heading small { display: none; }
+.pit-stage--mobile .pit-table-view--small .pit-record--small,
+.pit-stage--mobile .pit-record--small {
+  height: 39px; grid-template-columns: 28px 72px;
+}
+.pit-stage--mobile .pit-record--small .pit-record-index {
+  padding-left: 7px; font-size: 10.5px;
+}
+.pit-stage--mobile .pit-record--small .pit-record-title {
+  font-size: 11px; line-height: 16px; font-weight: 500;
+  white-space: normal; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+
+/* 667×375 / 详情固定标题 + 三栏可滚动正文 */
+.pit-stage--mobile .pit-detail {
+  left: 132px; top: 92px; width: 515px; height: 256px;
+  border: 1px solid #777; background: rgba(4, 5, 7, .84);
+}
+.pit-stage--mobile .pit-detail-top {
+  height: 86px; flex-basis: 86px;
+  border-bottom: 1px solid rgba(174, 175, 177, .55);
+}
+.pit-stage--mobile .pit-detail-top-watermark {
+  left: 200px; top: -130px; width: 300px; height: 307px;
+}
+.pit-stage--mobile .pit-detail-top-signature {
+  left: 150px; top: 10px; width: 105px; height: 60px;
+}
+.pit-stage--mobile .pit-detail-top-emblem {
+  left: 421px; top: 1px; width: 82px; height: 84px;
+}
+.pit-stage--mobile .pit-detail-kicker {
+  left: 12px; top: 0; font-size: 9.5px; font-style: normal;
+}
+.pit-stage--mobile .pit-detail-top h2 {
+  left: 12px; top: 17px; max-width: 388px;
+  font-size: 13px; line-height: 19px; font-weight: 500; letter-spacing: 0;
+}
+.pit-stage--mobile .pit-detail-category {
+  left: 12px; top: 43px; height: 18px; min-width: 78px;
+}
+.pit-stage--mobile .pit-detail-summary {
+  left: 12px; bottom: 9px; max-width: 489px;
+  font-size: 9.5px; line-height: 14px;
+}
+.pit-stage--mobile .pit-detail-columns {
+  grid-template-columns: 160px 192px 115px;
+  column-gap: 12px; padding: 0 12px;
+}
+.pit-stage--mobile .pit-detail-block-heading { height: 18px; }
+.pit-stage--mobile .pit-detail-block-toggle { height: 18px; gap: 5px; }
+.pit-stage--mobile .pit-detail-glyph {
+  flex-basis: 16px; width: 16px; height: 16px;
+}
+.pit-stage--mobile .pit-detail-glyph svg { width: 15px; height: 15px; }
+.pit-stage--mobile .pit-detail-block-cn {
+  font-size: 11px; line-height: 16px;
+}
+.pit-stage--mobile .pit-detail-block-en {
+  font-size: 9.5px; line-height: 14px;
+}
+.pit-stage--mobile .pit-detail-block-body {
+  margin: 6px 0 0; font-size: 10.5px; line-height: 16px;
+}
+.pit-stage--mobile .pit-detail-bullets,
+.pit-stage--mobile .pit-detail-numbered { padding-left: 13px; }
+.pit-stage--mobile .pit-detail-block--overview { min-height: 104px; }
+.pit-stage--mobile .pit-detail-block--issue { margin-top: 12px; }
+.pit-stage--mobile .pit-detail-block--address {
+  margin-top: 12px; min-height: 84px; display: block;
+}
+.pit-stage--mobile .pit-detail-block--demand { min-height: 182px; }
+.pit-stage--mobile .pit-detail-block--text { margin-top: 12px; }
+.pit-stage--mobile .pit-detail-address-actions {
+  margin: 6px 0 0;
+}
+.pit-stage--mobile .pit-detail-link-control { height: 30px; }
+.pit-stage--mobile .pit-detail-link-control button {
+  font-size: 10.5px; padding: 0 6px; gap: 4px;
+}
+.pit-stage--mobile .pit-detail-link-control a { padding: 0 5px 0 0; }
+.pit-stage--mobile .pit-detail-progress-heading {
+  height: 30px; gap: 5px; white-space: normal;
+}
+.pit-stage--mobile .pit-detail-column--progress .pit-detail-block-en {
+  display: block;
+}
+.pit-stage--mobile .pit-detail-progress-status {
+  margin: 6px 0 0; width: 115px; height: 16px;
+  border: 0; border-radius: 0; background: none;
+  justify-content: flex-start; gap: 0; font-size: 10.5px;
+}
+.pit-stage--mobile .pit-detail-progress-status .pit-status-dot { display: none; }
+.pit-stage--mobile .pit-detail-bullet {
+  left: 545px; top: 259px; width: 91px; height: 76px;
+  filter: none; opacity: .49;
+}
+.pit-stage--mobile .pit-detail-helmet {
+  left: 548px; top: 297px; width: 99px; height: 66px;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .65));
+}
+
+/* 375×667 / 竖屏重排。仅复用 Figma 原有元素及交互。 */
+.pit-stage--portrait { width: 375px; height: 667px; }
+.pit-stage--portrait .pit-splash,
+.pit-stage--portrait .pit-scene { width: 375px; height: 667px; }
+.pit-stage--portrait .pit-scene-shade {
+  left: 6px; top: 6px; width: 363px; height: 655px;
+}
+.pit-stage--portrait .pit-header { height: 112px; }
+.pit-stage--portrait .pit-back { left: 12px; top: 20px; }
+.pit-stage--portrait .pit-brand { left: 52px; top: 20px; }
+.pit-stage--portrait .pit-red-slash { left: 152px; top: 18px; }
+.pit-stage--portrait .pit-headline { left: 175px; top: 16px; }
+.pit-stage--portrait .pit-headline > div {
+  width: 184px; font-size: 9.5px; line-height: 14px;
+  white-space: normal;
+}
+.pit-stage--portrait .pit-headline p {
+  width: 174px; margin-top: 4px; font-size: 9px; line-height: 12px;
+}
+.pit-stage--portrait .pit-mobile-header-signature {
+  left: 260px; top: 30px; width: 80px; height: 50px; opacity: .22;
+}
+.pit-stage--portrait .pit-system {
+  left: 12px; right: auto; top: 77px; width: 140px;
+}
+.pit-stage--portrait .pit-mobile-search-toggle {
+  left: 319px; top: 64px;
+}
+.pit-stage--portrait .pit-search {
+  left: 155px; top: 64px; width: 164px;
+}
+.pit-stage--portrait .pit-table {
+  left: 12px; top: 116px; width: 351px; height: 325px;
+}
+.pit-stage--portrait .pit-table-view--full { width: 349px; }
+.pit-stage--portrait .pit-table-head,
+.pit-stage--portrait .pit-table--collapsed .pit-table-view--full .pit-table-head,
+.pit-stage--portrait .pit-record {
+  grid-template-columns: 26px 145px 65px 65px 50px;
+}
+.pit-stage--portrait .pit-record-index { padding-left: 5px; }
+.pit-stage--portrait .pit-record-title { font-size: 10.5px; }
+.pit-stage--portrait .pit-record-summary { font-size: 8.5px; }
+.pit-stage--portrait .pit-category-tag {
+  min-width: 60px; padding: 0 2px; font-size: 9px;
+}
+.pit-stage--portrait .pit-record-date { font-size: 9px; }
+.pit-stage--portrait .pit-record-status { gap: 3px; font-size: 9px; }
+.pit-stage--portrait .pit-table-head > span:nth-child(2) small { display: none; }
+.pit-stage--portrait .pit-filter {
+  left: 12px; top: 453px; width: 351px; height: 189px;
+}
+.pit-stage--portrait .pit-filter-buttons {
+  grid-template-columns: repeat(2, 94px); grid-auto-rows: 30px;
+  gap: 7px; margin-top: 12px;
+}
+.pit-stage--portrait .pit-filter-buttons button { font-size: 11px; }
+.pit-stage--portrait .pit-date-heading {
+  position: absolute; left: 216px; top: 6px; margin: 0;
+}
+.pit-stage--portrait .pit-date-inputs {
+  position: absolute; left: 216px; top: 42px; margin: 0;
+}
+.pit-stage--portrait .pit-date-line { gap: 2px; margin-bottom: 12px; }
+.pit-stage--portrait .pit-date-line input { width: 37px; }
+.pit-stage--portrait .pit-date-line input:nth-of-type(2) { width: 23px; }
+.pit-stage--portrait .pit-date-to { left: 327px; top: 68px; }
+.pit-stage--portrait .pit-bullet {
+  left: 220px; top: 540px; width: 100px; height: 85px;
+}
+.pit-stage--portrait .pit-helmet {
+  left: 274px; top: 580px; width: 90px; height: 70px;
+}
+.pit-stage--portrait .pit-footer-text { left: 12px; bottom: 8px; }
+.pit-stage--portrait .pit-table--collapsed {
+  left: 12px; top: 116px; width: 84px; height: 526px;
+}
+.pit-stage--portrait .pit-table-view--small .pit-table-head,
+.pit-stage--portrait .pit-table--collapsed .pit-table-head,
+.pit-stage--portrait .pit-table-view--small .pit-record--small,
+.pit-stage--portrait .pit-record--small {
+  grid-template-columns: 22px 62px;
+}
+.pit-stage--portrait .pit-record--small .pit-record-index { padding-left: 4px; }
+.pit-stage--portrait .pit-record--small .pit-record-title {
+  font-size: 10px; line-height: 14px;
+}
+.pit-stage--portrait .pit-detail {
+  left: 108px; top: 116px; width: 255px; height: 526px;
+}
+.pit-stage--portrait .pit-detail-top { height: 104px; flex-basis: 104px; }
+.pit-stage--portrait .pit-detail-top h2 {
+  max-width: 230px; font-size: 12px;
+}
+.pit-stage--portrait .pit-detail-top-signature {
+  left: 115px; top: 10px; width: 90px; opacity: .35;
+}
+.pit-stage--portrait .pit-detail-top-emblem {
+  left: 190px; width: 58px; height: 64px; opacity: .35;
+}
+.pit-stage--portrait .pit-detail-top-watermark { left: 80px; }
+.pit-stage--portrait .pit-detail-summary {
+  left: 12px; bottom: 6px; max-width: 228px;
+  white-space: normal; display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; font-size: 9.5px; line-height: 13px;
+}
+.pit-stage--portrait .pit-detail-columns {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px; padding: 10px 12px 18px;
+}
+.pit-stage--portrait .pit-detail-block--overview,
+.pit-stage--portrait .pit-detail-block--demand { min-height: 0; }
+.pit-stage--portrait .pit-detail-block--issue,
+.pit-stage--portrait .pit-detail-block--address,
+.pit-stage--portrait .pit-detail-block--text { margin-top: 14px; }
+.pit-stage--portrait .pit-detail-block-body { font-size: 11px; line-height: 17px; }
+.pit-stage--portrait .pit-detail-bullet {
+  left: 273px; top: 546px; width: 77px; height: 70px; opacity: .25;
+}
+.pit-stage--portrait .pit-detail-helmet {
+  left: 291px; top: 589px; width: 68px; height: 51px; opacity: .65;
+}
+/* 仅移动端调整图层，不影响电脑端 */
+
+/* 装饰容器低于文字及筛选区域 */
+.pit-stage--mobile .pit-right-decoration {
+  z-index: 2;
+}
+
+/* 子弹在下层 */
+.pit-stage--mobile .pit-bullet {
+  z-index: 1;
+}
+
+/* 头盔在子弹上层 */
+.pit-stage--mobile .pit-helmet {
+  z-index: 2;
+}
+/* 复制结果提示：2秒自动消失，无须手动确认 */
+.pit-copy-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  z-index: 99999;
+
+  padding: 12px 28px;
+  min-width: 140px;
+
+  background: rgba(20, 24, 31, 0.95);
+  border: 1px solid rgba(180, 190, 210, 0.45);
+  border-radius: 6px;
+
+  color: #fff;
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+
+  pointer-events: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
