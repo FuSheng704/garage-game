@@ -432,6 +432,10 @@ const GasStationPage: React.FC = () => {
   const closeTimerRef = useRef<number | null>(null);
   const revealTimerRef = useRef<number | null>(null);
 
+  // 复制结果使用非阻塞提示，电脑端和移动端均自动消失。
+  const [copyToast, setCopyToast] = useState('');
+  const copyToastTimerRef = useRef<number | null>(null);
+
   const [collapseMap, setCollapseMap] =
     useState<Record<CollapseKey, boolean>>({
       ...initialCollapse,
@@ -470,6 +474,10 @@ const GasStationPage: React.FC = () => {
 
       if (revealTimerRef.current !== null) {
         window.clearTimeout(revealTimerRef.current);
+      }
+
+      if (copyToastTimerRef.current !== null) {
+        window.clearTimeout(copyToastTimerRef.current);
       }
     };
   }, []);
@@ -572,12 +580,24 @@ const GasStationPage: React.FC = () => {
     endMonth,
   ]);
 
+  const showCopyToast = (message: string) => {
+    if (copyToastTimerRef.current !== null) {
+      window.clearTimeout(copyToastTimerRef.current);
+    }
+
+    setCopyToast(message);
+    copyToastTimerRef.current = window.setTimeout(() => {
+      setCopyToast('');
+      copyToastTimerRef.current = null;
+    }, 1500);
+  };
+
   const copyText = async (value: string) => {
     try {
       await navigator.clipboard.writeText(value);
-      alert('复制成功');
+      showCopyToast('复制成功');
     } catch {
-      alert('复制失败');
+      showCopyToast('复制失败，请重试');
     }
   };
 
@@ -1571,6 +1591,13 @@ const GasStationPage: React.FC = () => {
           </main>
         )}
       </div>
+
+      {/* 放在缩放画布外，避免移动端提示文字随画布缩小。 */}
+      {copyToast && (
+        <div className="pit-copy-toast" role="status" aria-live="polite">
+          {copyToast}
+        </div>
+      )}
     </div>
   );
 };

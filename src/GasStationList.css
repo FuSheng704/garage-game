@@ -579,7 +579,9 @@
 .pit-date-to {
   position: absolute;
   left: 220px;
-  top: 30px;
+  top: 34.5px;
+  transform: translateY(-50%);
+  line-height: 1;
   font-size: 20px;
   font-weight: 800;
 }
@@ -1494,7 +1496,7 @@
 .pit-stage--mobile .pit-date-line input:nth-of-type(2) { width: 26px; }
 .pit-stage--mobile .pit-date-line > span { font-size: 10px; }
 .pit-stage--mobile .pit-date-to {
-  left: 121px; top: 21px; font-size: 10px; line-height: 12px;
+  left: 121px; top: 21px; font-size: 10px; line-height: 12px;transform: none;
 }
 .pit-stage--mobile .pit-bullet {
   left: 487px; top: 233px; width: 129px; height: 107px;
@@ -1746,4 +1748,25 @@
 }
 .pit-stage--portrait .pit-detail-helmet {
   left: 291px; top: 589px; width: 68px; height: 51px; opacity: .65;
+}
+.pit-copy-toast {
+  position: fixed;
+  z-index: 100;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px) + 16px);
+  transform: translateX(-50%);
+  max-width: calc(100vw - 32px);
+  min-width: 140px;
+  padding: 12px 24px;
+  border: 1px solid rgba(182, 187, 195, 0.55);
+  border-radius: 8px;
+  background: rgba(18, 21, 27, 0.96);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
 }
