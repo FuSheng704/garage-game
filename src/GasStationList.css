@@ -356,8 +356,8 @@
   background: rgba(23, 27, 30, .94);
 }
 
-.pit-record:hover,
-.pit-record--selected {
+/* 鼠标悬停仅影响未选中行；打开详情的当前行沿用原本的奇偶行底色。 */
+.pit-record:not(.pit-record--selected):hover {
   background: rgba(40, 43, 47, .96) !important;
 }
 
@@ -701,9 +701,7 @@
   font-weight: 700;
 }
 
-.pit-table--collapsed .pit-record--selected {
-  background: rgba(7, 9, 11, .97) !important;
-}
+/* 详情模式不为当前选中行指定独立背景，沿用 .pit-record 的斑马纹。 */
 
 /* ================= 详情页主体 ================= */
 
@@ -1348,20 +1346,27 @@
   font-size: 22px; line-height: 20px; font-weight: 700;
 }
 
-/* Figma 移动端：搜索图标为 44×44，点击后向左展开输入框。 */
+/* Figma 移动端：外框 248×36 / 圆角 7 / 边框 1；衬底 #090A0D，88% 不透明。 */
 .pit-stage--mobile .pit-mobile-search-toggle {
   display: flex; align-items: center; justify-content: center;
   position: absolute; z-index: 9; left: 603px; top: 40px;
   width: 44px; height: 44px; padding: 0;
   border: 0; background: rgba(0, 0, 0, .36); color: #fff;
 }
+.pit-stage--mobile .pit-mobile-search-toggle--open {
+  top: 44px; height: 36px;
+  background: transparent; color: #c4c5c8;
+}
 .pit-stage--mobile .pit-mobile-search-toggle--hidden {
   display: none;
 }
 .pit-stage--mobile .pit-search {
-  left: 449px; top: 40px; width: 154px; height: 44px;
-  z-index: 8; border: 1px solid rgba(220, 220, 224, .78);
-  background: rgba(0, 0, 0, .92);
+  left: 399px; top: 44px; width: 248px; height: 36px;
+  padding-right: 44px; /* X 关闭按钮占最右侧 44px，属于同一视觉外框。 */
+  z-index: 8;
+  border: 1px solid #3b3b40;
+  border-radius: 7px;
+  background: rgba(9, 10, 13, .88);
   opacity: 0; visibility: hidden; pointer-events: none;
   transform: translateX(12px);
 }
@@ -1372,11 +1377,18 @@
 .pit-stage--mobile .pit-search-icon,
 .pit-stage--mobile .pit-search-enter { display: none; }
 .pit-stage--mobile .pit-search input {
-  font-size: 11px; padding: 0 7px;
+  font-size: 11px; padding: 0 11px;
 }
+/* 红色按钮在外框内部留出上下各 4px，圆角 6px，不再是顶满外框的直角块。 */
 .pit-stage--mobile .pit-search > button {
-  width: 50px; flex-basis: 50px; font-size: 11px;
+  align-self: center;
+  width: 44px; height: 26px; flex: 0 0 44px;
+  padding: 0; margin: 0;
+  border: 0; border-radius: 6px;
+  background: #f41335; color: #fff;
+  font-size: 11px;
 }
+.pit-stage--mobile .pit-search > button:hover { background: #ff3158; }
 
 /* 667×375 / 事件列表 */
 .pit-stage--mobile .pit-table {
@@ -1413,6 +1425,13 @@
   background: #090a0d;
 }
 .pit-stage--mobile .pit-record:nth-of-type(odd) { background: #13171b; }
+/* 展开详情后，选中行保持原本的深浅交替底色，不再额外加深。 */
+.pit-stage--mobile .pit-table--collapsed .pit-record--selected {
+  background: #090a0d !important;
+}
+.pit-stage--mobile .pit-table--collapsed .pit-record--selected:nth-of-type(odd) {
+  background: #13171b !important;
+}
 .pit-stage--mobile .pit-record-index {
   padding-left: 7px; font-family: inherit;
   font-size: 10.5px; font-weight: 500;
@@ -1474,7 +1493,9 @@
 }
 .pit-stage--mobile .pit-date-line input:nth-of-type(2) { width: 26px; }
 .pit-stage--mobile .pit-date-line > span { font-size: 10px; }
-.pit-stage--mobile .pit-date-to { left: 121px; top: 26px; font-size: 10px; }
+.pit-stage--mobile .pit-date-to {
+  left: 121px; top: 21px; font-size: 10px; line-height: 12px;
+}
 .pit-stage--mobile .pit-bullet {
   left: 487px; top: 233px; width: 129px; height: 107px;
   filter: none; opacity: .9;
@@ -1633,7 +1654,7 @@
   left: 319px; top: 64px;
 }
 .pit-stage--portrait .pit-search {
-  left: 155px; top: 64px; width: 164px;
+  left: 155px; top: 64px; width: 208px; /* 右侧 44px 与关闭 X 对齐 */
 }
 .pit-stage--portrait .pit-table {
   left: 12px; top: 116px; width: 351px; height: 325px;
@@ -1670,7 +1691,7 @@
 .pit-stage--portrait .pit-date-line { gap: 2px; margin-bottom: 12px; }
 .pit-stage--portrait .pit-date-line input { width: 37px; }
 .pit-stage--portrait .pit-date-line input:nth-of-type(2) { width: 23px; }
-.pit-stage--portrait .pit-date-to { left: 327px; top: 68px; }
+.pit-stage--portrait .pit-date-to { left: 108px; top: 21px; }
 .pit-stage--portrait .pit-bullet {
   left: 220px; top: 540px; width: 100px; height: 85px;
 }
@@ -1725,43 +1746,4 @@
 }
 .pit-stage--portrait .pit-detail-helmet {
   left: 291px; top: 589px; width: 68px; height: 51px; opacity: .65;
-}
-/* 仅移动端调整图层，不影响电脑端 */
-
-/* 装饰容器低于文字及筛选区域 */
-.pit-stage--mobile .pit-right-decoration {
-  z-index: 2;
-}
-
-/* 子弹在下层 */
-.pit-stage--mobile .pit-bullet {
-  z-index: 1;
-}
-
-/* 头盔在子弹上层 */
-.pit-stage--mobile .pit-helmet {
-  z-index: 2;
-}
-/* 复制结果提示：2秒自动消失，无须手动确认 */
-.pit-copy-toast {
-  position: fixed;
-  left: 50%;
-  bottom: 32px;
-  transform: translateX(-50%);
-  z-index: 99999;
-
-  padding: 12px 28px;
-  min-width: 140px;
-
-  background: rgba(20, 24, 31, 0.95);
-  border: 1px solid rgba(180, 190, 210, 0.45);
-  border-radius: 6px;
-
-  color: #fff;
-  font-size: 16px;
-  text-align: center;
-  white-space: nowrap;
-
-  pointer-events: none;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }

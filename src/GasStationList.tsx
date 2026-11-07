@@ -431,8 +431,6 @@ const GasStationPage: React.FC = () => {
 
   const closeTimerRef = useRef<number | null>(null);
   const revealTimerRef = useRef<number | null>(null);
-  const [copyNotice, setCopyNotice] = useState<string | null>(null);
-  const copyNoticeTimerRef = useRef<number | null>(null);
 
   const [collapseMap, setCollapseMap] =
     useState<Record<CollapseKey, boolean>>({
@@ -574,27 +572,14 @@ const GasStationPage: React.FC = () => {
     endMonth,
   ]);
 
-  const showCopyNotice = (message: string) => {
-  if (copyNoticeTimerRef.current !== null) {
-    window.clearTimeout(copyNoticeTimerRef.current);
-  }
-
-  setCopyNotice(message);
-
-  copyNoticeTimerRef.current = window.setTimeout(() => {
-    setCopyNotice(null);
-    copyNoticeTimerRef.current = null;
-  }, 2000);
-};
-
-const copyText = async (value: string) => {
-  try {
-    await navigator.clipboard.writeText(value);
-    showCopyNotice('复制成功');
-  } catch {
-    showCopyNotice('复制失败，请重试');
-  }
-};
+  const copyText = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      alert('复制成功');
+    } catch {
+      alert('复制失败');
+    }
+  };
 
   const toggleCollapse = (key: CollapseKey) => {
     setCollapseMap((prev) => ({
@@ -1111,7 +1096,7 @@ const copyText = async (value: string) => {
 
               <button
                 type="button"
-                className={`pit-mobile-search-toggle${panelCollapsed ? ' pit-mobile-search-toggle--hidden' : ''}`}
+                className={`pit-mobile-search-toggle${panelCollapsed ? ' pit-mobile-search-toggle--hidden' : ''}${mobileSearchOpen ? ' pit-mobile-search-toggle--open' : ''}`}
                 onClick={() => {
                   setMobileSearchOpen((open) => !open);
                   if (!mobileSearchOpen) {
@@ -1123,10 +1108,16 @@ const copyText = async (value: string) => {
                 title={mobileSearchOpen ? '收起搜索' : '展开搜索'}
                 tabIndex={stage.isMobile && !panelCollapsed ? 0 : -1}
               >
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
-                  <circle cx="10.5" cy="10.5" r="7.5" stroke="currentColor" strokeWidth="2.2" />
-                  <path d="M16.5 16.5 L22 22" stroke="currentColor" strokeWidth="2.2" />
-                </svg>
+                {mobileSearchOpen ? (
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                    <path d="M5 5L19 19M19 5L5 19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+                    <circle cx="10.5" cy="10.5" r="7.5" stroke="currentColor" strokeWidth="2.2" />
+                    <path d="M16.5 16.5 L22 22" stroke="currentColor" strokeWidth="2.2" />
+                  </svg>
+                )}
               </button>
             </header>
 
@@ -1579,17 +1570,7 @@ const copyText = async (value: string) => {
             </div>
           </main>
         )}
-            </div>
-
-      {copyNotice && (
-        <div
-          className="pit-copy-toast"
-          role="status"
-          aria-live="polite"
-        >
-          {copyNotice}
-        </div>
-      )}
+      </div>
     </div>
   );
 };
