@@ -592,7 +592,7 @@ function Picker({
             ["一", "二", "三"][questionIndex]
           }`;
 
-  let options: string[] = [];
+  let options: string[];
 
   if (type === "month") {
     options = Array.from(
@@ -1008,9 +1008,19 @@ const forgotRequestVersionRef = useRef(0);
     }, []);
 
   useEffect(() => {
-    if (mode === "login") {
-      void refreshCaptcha();
+    if (mode !== "login") {
+      return;
     }
+
+    // 推迟至 Effect 完成后加载验证码，避免同步触发状态更新。
+    // 页面模式切换或组件卸载时取消尚未执行的任务。
+    const timer = window.setTimeout(() => {
+      void refreshCaptcha();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [mode, refreshCaptcha]);
 
   useEffect(() => {
@@ -2283,7 +2293,7 @@ const handleForgotStepTwo = async (
                     switchMode("register");
                   }}
                 >
-                  立即注册　›
+                  立即注册{"\u3000"}›
                 </button>
 
                 <button
@@ -2291,7 +2301,7 @@ const handleForgotStepTwo = async (
                   className="figma-auth-secondary figma-auth-secondary--guest"
                   onClick={enterGuestMode}
                 >
-                  游客模式　›
+                  游客模式{"\u3000"}›
                 </button>
               </div>
             </form>
@@ -2369,7 +2379,7 @@ const handleForgotStepTwo = async (
                         switchMode("login");
                       }}
                     >
-                      立即登录　›
+                      立即登录{"\u3000"}›
                     </button>
                   </div>
                 </form>

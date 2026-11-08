@@ -188,20 +188,12 @@ const categoryMap = [
   { id: 5, name: '线下活动' },
 ];
 
-type CollapseKey =
+type DetailBlockKey =
   | 'overview'
   | 'issue'
   | 'demand'
   | 'text'
   | 'link';
-
-const initialCollapse: Record<CollapseKey, boolean> = {
-  overview: true,
-  issue: true,
-  demand: true,
-  text: true,
-  link: true,
-};
 
 // 设计画布尺寸
 const DESIGN_WIDTH = 1591;
@@ -436,11 +428,6 @@ const GasStationPage: React.FC = () => {
   const [copyToast, setCopyToast] = useState('');
   const copyToastTimerRef = useRef<number | null>(null);
 
-  const [collapseMap, setCollapseMap] =
-    useState<Record<CollapseKey, boolean>>({
-      ...initialCollapse,
-    });
-
   const [searchKey, setSearchKey] = useState('');
   // 移动端按 Figma：默认只显示右上角搜索图标，点击后展开搜索框。
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -601,13 +588,6 @@ const GasStationPage: React.FC = () => {
     }
   };
 
-  const toggleCollapse = (key: CollapseKey) => {
-    setCollapseMap((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
-
   const backToList = () => {
     clearMotionTimers();
 
@@ -637,7 +617,6 @@ const GasStationPage: React.FC = () => {
     setSelectedItem(item);
     setPanelCollapsed(true);
     setMobileSearchOpen(false);
-    setCollapseMap({ ...initialCollapse });
 
     if (!wasCollapsed) {
       setDetailVisible(false);
@@ -706,6 +685,14 @@ const GasStationPage: React.FC = () => {
     setter(
       value.replace(/\D/g, '').slice(0, maxLength)
     );
+  };
+
+  // 只清空发布日期范围，不影响搜索词和问题类型筛选。
+  const clearDateFilter = () => {
+    setStartYear('');
+    setStartMonth('');
+    setEndYear('');
+    setEndMonth('');
   };
 
   const renderRow = (
@@ -798,7 +785,7 @@ const GasStationPage: React.FC = () => {
   };
 
   const renderDetailBlock = (
-    key: CollapseKey,
+    key: DetailBlockKey,
     chinese: string,
     english: string,
     kind: DetailGlyphKind,
@@ -825,15 +812,7 @@ const GasStationPage: React.FC = () => {
         key={key}
       >
         <div className="pit-detail-block-heading">
-          <button
-            type="button"
-            className="pit-detail-block-toggle"
-            onClick={() => toggleCollapse(key)}
-            aria-expanded={collapseMap[key]}
-            title={`${
-              collapseMap[key] ? '收起' : '展开'
-            }${chinese}`}
-          >
+          <div className="pit-detail-block-toggle">
             <span className="pit-detail-glyph">
               <DetailGlyph kind={kind} />
             </span>
@@ -845,7 +824,7 @@ const GasStationPage: React.FC = () => {
             <span className="pit-detail-block-en">
               {english}
             </span>
-          </button>
+          </div>
 
           {key === 'text' && (
             <button
@@ -863,8 +842,7 @@ const GasStationPage: React.FC = () => {
           )}
         </div>
 
-        {collapseMap[key] &&
-          (key === 'link' ? (
+        {key === 'link' ? (
             <div className="pit-detail-address-actions">
               <div className="pit-detail-link-control">
                 <button
@@ -923,7 +901,7 @@ const GasStationPage: React.FC = () => {
             <p className="pit-detail-block-body">
               {value || '暂无内容'}
             </p>
-          ))}
+          )}
       </section>
     );
   };
@@ -1314,6 +1292,26 @@ const GasStationPage: React.FC = () => {
 
               <div className="pit-date-heading">
                 发布日期 <span>Date</span>
+                <button
+                  type="button"
+                  className="pit-date-clear"
+                  onClick={clearDateFilter}
+                  tabIndex={panelCollapsed ? -1 : 0}
+                  aria-label="清空筛选日期"
+                  title="清空筛选日期"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M4 7h16M9 7V4h6v3M6.5 7l.7 13h9.6l.7-13M10 11v6M14 11v6" />
+                  </svg>
+                </button>
               </div>
 
               <div className="pit-date-inputs">

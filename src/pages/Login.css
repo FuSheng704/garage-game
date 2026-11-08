@@ -3328,3 +3328,8 @@
     height: 318px;
   }
 }
+/* 登录、注册及找回密码页面：统一字段标签颜色 */
+.figma-auth-label,
+.figma-auth-forgot-label {
+  color: #202B4A;
+}

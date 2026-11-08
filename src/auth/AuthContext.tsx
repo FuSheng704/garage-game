@@ -426,6 +426,8 @@ const login = useCallback(
  * 其他页面统一使用此 Hook
  * 获取用户登录状态及资料。
  */
+// 保持现有 useAuth 导入路径兼容；仅豁免该 Hook 的 Fast Refresh 导出检查。
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
 

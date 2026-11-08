@@ -531,11 +531,32 @@
 }
 
 .pit-date-heading {
+  position: relative;
   font-size: 27px;
   line-height: 37px;
   margin-top: 33px;
   white-space: nowrap;
 }
+
+/* 发布日期右侧的清空按钮：桌面、横屏与竖屏共用同一交互。 */
+.pit-date-clear {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+.pit-date-clear svg { display: block; width: 24px; height: 24px; }
+.pit-date-clear:hover { opacity: .8; }
+.pit-date-clear:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 .pit-date-inputs {
   position: relative;
@@ -579,6 +600,7 @@
 .pit-date-to {
   position: absolute;
   left: 220px;
+  /* 25px 输入框 + 19px 行距：上下两行中心点位于 34.5px */
   top: 34.5px;
   transform: translateY(-50%);
   line-height: 1;
@@ -1461,7 +1483,7 @@
 .pit-stage--mobile .pit-table-empty { padding: 20px 0; font-size: 11px; }
 
 /* 667×375 / 右侧两列筛选、日期及装饰 */
-.pit-stage--mobile .pit-right-decoration { z-index: 5; }
+.pit-stage--mobile .pit-right-decoration { z-index: 3; }
 .pit-stage--mobile .pit-filter {
   left: 501px; top: 92px; width: 146px; height: 208px;
   padding: 4px 8px; border: 1px solid #777;
@@ -1485,6 +1507,8 @@
   font-size: 10.5px; font-weight: 400;
 }
 .pit-stage--mobile .pit-date-heading { margin-top: 4px; }
+.pit-stage--mobile .pit-date-clear { width: 20px; height: 20px; }
+.pit-stage--mobile .pit-date-clear svg { width: 19px; height: 19px; }
 .pit-stage--mobile .pit-date-inputs { margin: 14px 0 0; }
 .pit-stage--mobile .pit-date-line {
   gap: 4px; height: 22px; margin-bottom: 10px;
@@ -1496,7 +1520,9 @@
 .pit-stage--mobile .pit-date-line input:nth-of-type(2) { width: 26px; }
 .pit-stage--mobile .pit-date-line > span { font-size: 10px; }
 .pit-stage--mobile .pit-date-to {
-  left: 121px; top: 21px; font-size: 10px; line-height: 12px;transform: none;
+  /* 移动端继续沿用已调好的两行居中定位。 */
+  left: 121px; top: 21px; font-size: 10px; line-height: 12px;
+  transform: none;
 }
 .pit-stage--mobile .pit-bullet {
   left: 487px; top: 233px; width: 129px; height: 107px;
@@ -1685,7 +1711,7 @@
 }
 .pit-stage--portrait .pit-filter-buttons button { font-size: 11px; }
 .pit-stage--portrait .pit-date-heading {
-  position: absolute; left: 216px; top: 6px; margin: 0;
+  position: absolute; left: 216px; top: 6px; margin: 0; width: 116px;
 }
 .pit-stage--portrait .pit-date-inputs {
   position: absolute; left: 216px; top: 42px; margin: 0;
@@ -1749,6 +1775,8 @@
 .pit-stage--portrait .pit-detail-helmet {
   left: 291px; top: 589px; width: 68px; height: 51px; opacity: .65;
 }
+
+/* 复制成功 / 失败提示：无需点击确认，1.5 秒后自动消失。 */
 .pit-copy-toast {
   position: fixed;
   z-index: 100;
