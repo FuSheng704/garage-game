@@ -94,11 +94,13 @@ interface AuthContextValue {
    * 不取决于个人资料是否完善。
    */
   isAuthenticated: boolean;
+  isLogin: boolean;
 
   /**
    * 是否正在恢复登录状态
    */
   initializing: boolean;
+  isLoading: boolean;
 
   /**
    * 当前用户资料是否完善
@@ -396,7 +398,9 @@ const login = useCallback(
     () => ({
       user,
       isAuthenticated,
+      isLogin: isAuthenticated,
       initializing,
+      isLoading: initializing,
       profileFinished,
       login,
       register,

@@ -1,4 +1,3 @@
-
 import {
   useCallback,
   useEffect,
@@ -10,6 +9,7 @@ import {
 import { useLocation, useNavigate } from "react-router";
 
 import { useAuth } from "../auth/AuthContext";
+import { getSafeRedirect } from "../auth/navigation"
 
 import {
   getCaptchaApi,
@@ -882,14 +882,7 @@ const forgotRequestVersionRef = useRef(0);
   // 保存本次登录返回的用户资料，避免成功弹窗读取到上一轮的 React 状态。
   const loginResultRef = useRef<Awaited<ReturnType<typeof login>> | null>(null);
 
-  const redirectPath =
-    (
-      location.state as {
-        from?: {
-          pathname?: string;
-        };
-      } | null
-    )?.from?.pathname || "/";
+  const redirectPath = getSafeRedirect(new URLSearchParams(location.search).get("redirect"));
 
   /* ==========================================================
      响应式画布
@@ -1098,9 +1091,7 @@ const forgotRequestVersionRef = useRef(0);
       !dialog &&
       mode === "login"
     ) {
-      navigate("/", {
-        replace: true,
-      });
+      navigate(redirectPath, { replace: true });
     }
   }, [
     initializing,

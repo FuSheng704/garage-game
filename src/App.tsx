@@ -4,7 +4,6 @@ import {
   Routes,
 } from "react-router-dom";
 
-import ProtectedRoute from "./auth/ProtectedRoute";
 import GasStationList from './GasStationList';
 
 import Home from "./pages/Home";
@@ -23,11 +22,7 @@ function App() {
       {/* 登录后主页 */}
       <Route
         path="/"
-        element={
-          <ProtectedRoute>
-            <Home />
-          </ProtectedRoute>
-        }
+        element={<Home />}
       />
 
       {/* 未匹配路由 */}
