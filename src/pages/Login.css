@@ -3333,3 +3333,8 @@
 .figma-auth-forgot-label {
   color: #202B4A;
 }
+/* 隐藏 Edge/IE 原生密码显示控件，避免与自定义眼睛按钮重复 */
+.figma-auth-field input[type="password"]::-ms-reveal,
+.figma-auth-field input[type="password"]::-ms-clear {
+  display: none;
+}
