@@ -9,10 +9,10 @@ const imgSearch = "/assets/figma/3c7bdef2-ad61-405b-ac98-ceadbd44885e.svg";
 const imgGroup7 = "/assets/figma/3249aa33-8995-41b7-a6af-baf56cc6f2e5.svg";
 const img = "/assets/figma/4c583398-c2eb-49cd-bd59-9f60045dd780.svg";
 
-export default function Component03() {
+export default function Component03({ selectedCategory }: { selectedCategory: string }) {
   return (
     <div className="bg-[#0b1114] border-[#826b43] border-[0.995px] border-solid [align-content:stretch] flex gap-[9.952px] items-center pl-[5.971px] pr-[7.962px] relative rounded-[4.976px] size-full" data-node-id="6301:2201" data-name="03 / 商品分类、搜索与排序">
-      <button className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[122.412px]" data-node-id="6301:2202" data-name="分类 / 徽章">
+      <button type="button" aria-pressed={selectedCategory === "徽章"} className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[122.412px]" data-node-id="6301:2202" data-name="分类 / 徽章">
         <div className="relative shrink-0 size-[23.885px]" data-node-id="I6301:2202;4163:812" data-name="分类图标 / 猫">
           <div className="absolute inset-[-8.33%]" data-node-id="I6301:2202;4758:1004" data-name="猫 / 白色轮廓 · 透明内部">
             <div className="absolute inset-[6.26%_10.24%_6.25%_10.24%]" data-node-id="I6301:2202;4758:1005" data-name="Group">
@@ -24,7 +24,7 @@ export default function Component03() {
           <p className="leading-[23.771px]">徽章</p>
         </div>
       </button>
-      <button className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[111.464px]" data-node-id="6301:2203" data-name="分类 / 纸片">
+      <button type="button" aria-pressed={selectedCategory === "纸片"} className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[111.464px]" data-node-id="6301:2203" data-name="分类 / 纸片">
         <div className="relative shrink-0 size-[23.885px]" data-node-id="I6301:2203;4163:818" data-name="分类图标 / 卷尾犬">
           <div className="absolute inset-[-8.33%]" data-node-id="I6301:2203;4758:1007" data-name="卷尾犬 / 白色轮廓 · 透明内部">
             <div className="absolute inset-[6.25%_6.77%]" data-node-id="I6301:2203;4758:1008" data-name="Group">
@@ -36,7 +36,7 @@ export default function Component03() {
           <p className="leading-[23.771px]">纸片</p>
         </div>
       </button>
-      <button className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[111.464px]" data-node-id="6301:2204" data-name="分类 / 礼盒">
+      <button type="button" aria-pressed={selectedCategory === "礼盒"} className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[111.464px]" data-node-id="6301:2204" data-name="分类 / 礼盒">
         <div className="relative shrink-0 size-[23.885px]" data-node-id="I6301:2204;4163:824" data-name="分类图标 / 立耳犬">
           <div className="absolute inset-[-8.33%]" data-node-id="I6301:2204;4758:14639" data-name="立耳犬 / 白色轮廓 · 透明内部">
             <div className="absolute inset-[6.25%_11.8%]" data-node-id="I6301:2204;4758:14640" data-name="Group">
@@ -48,7 +48,7 @@ export default function Component03() {
           <p className="leading-[23.771px]">礼盒</p>
         </div>
       </button>
-      <button className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[120.421px]" data-node-id="6301:2205" data-name="分类 / 亚克力">
+      <button type="button" aria-pressed={selectedCategory === "亚克力"} className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[120.421px]" data-node-id="6301:2205" data-name="分类 / 亚克力">
         <div className="relative shrink-0 size-[23.885px]" data-node-id="I6301:2205;4163:829" data-name="分类图标 / 乌龟">
           <div className="absolute inset-[-8.33%]" data-node-id="I6301:2205;4758:14642" data-name="乌龟 / 白色轮廓 · 透明内部">
             <div className="absolute inset-[24.18%_6.25%_24.18%_6.26%]" data-node-id="I6301:2205;4758:14643" data-name="Group">
@@ -60,7 +60,7 @@ export default function Component03() {
           <p className="leading-[23.771px]">亚克力</p>
         </div>
       </button>
-      <button className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[109.474px]" data-node-id="6301:2206" data-name="分类 / 挂件">
+      <button type="button" aria-pressed={selectedCategory === "挂件"} className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[109.474px]" data-node-id="6301:2206" data-name="分类 / 挂件">
         <div className="relative shrink-0 size-[23.885px]" data-node-id="I6301:2206;4163:834" data-name="分类图标 / 糖果">
           <div className="absolute inset-[-8.33%]" data-node-id="I6301:2206;4758:14651" data-name="糖果 / 白色轮廓 · 透明内部">
             <div className="absolute inset-[18.78%_6.25%_18.77%_6.25%]" data-node-id="I6301:2206;4758:14652" data-name="Group">
@@ -72,7 +72,7 @@ export default function Component03() {
           <p className="leading-[23.771px]">挂件</p>
         </div>
       </button>
-      <button className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[109.474px]" data-node-id="6301:2207" data-name="分类 / 摆件">
+      <button type="button" aria-pressed={selectedCategory === "摆件"} className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[109.474px]" data-node-id="6301:2207" data-name="分类 / 摆件">
         <div className="relative shrink-0 size-[23.885px]" data-node-id="I6301:2207;4163:839" data-name="分类图标 / 头盔">
           <div className="absolute inset-[-8.33%]" data-node-id="I6301:2207;4758:14654" data-name="头盔 / 白色轮廓 · 透明内部">
             <div className="absolute inset-[11.52%_6.28%_11.52%_6.25%]" data-node-id="I6301:2207;4758:14655" data-name="Group">
@@ -84,7 +84,7 @@ export default function Component03() {
           <p className="leading-[23.771px]">摆件</p>
         </div>
       </button>
-      <button className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[110.469px]" data-node-id="6301:2208" data-name="分类 / 其他">
+      <button type="button" aria-pressed={selectedCategory === "其他"} className="bg-[#292924] [align-content:stretch] cursor-pointer flex gap-[7.962px] h-[45.78px] items-center justify-center relative rounded-[10.947px] shrink-0 w-[110.469px]" data-node-id="6301:2208" data-name="分类 / 其他">
         <div className="overflow-clip relative shrink-0 size-[23.885px]" data-node-id="I6301:2208;4163:845" data-name="分类图标 / more">
           <div className="absolute inset-[44.17%_10.83%]" data-node-id="I6301:2208;4163:846" data-name="Group">
             <div className="absolute inset-[-23.21%_-3.46%]">
@@ -119,18 +119,6 @@ export default function Component03() {
           <img alt="" className="absolute block inset-0 max-w-none size-full" src={img} />
         </div>
       </div>
-      <button className="absolute bg-gradient-to-b border-[0.697px] border-[rgba(100,135,172,0.6)] border-solid [align-content:stretch] cursor-pointer flex from-[#3d5c91] gap-[7.962px] h-[45.78px] items-center justify-center left-[5.97px] rounded-[10.947px] to-[#162032] top-[11.94px] w-[122.412px]" data-node-id="6303:3008" data-name="分类 / 徽章 / 选中">
-        <div className="relative shrink-0 size-[23.885px]" data-node-id="I6303:3008;4163:812" data-name="分类图标 / 猫">
-          <div className="absolute inset-[-8.33%]" data-node-id="I6303:3008;4758:1004" data-name="猫 / 白色轮廓 · 透明内部">
-            <div className="absolute inset-[6.26%_10.24%_6.25%_10.24%]" data-node-id="I6303:3008;4758:1005" data-name="Group">
-              <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgGroup} />
-            </div>
-          </div>
-        </div>
-        <div className="[word-break:break-word] flex flex-col font-['Noto_Serif_SC:Medium'] font-medium h-[26.871px] justify-center leading-[0] relative shrink-0 text-[15.85px] text-[color:var(--archive-cream,#fff4dc)] text-left w-[41.799px]" data-node-id="I6303:3008;4163:816">
-          <p className="leading-[23.771px]">徽章</p>
-        </div>
-      </button>
     </div>
   );
 }
