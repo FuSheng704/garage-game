@@ -457,12 +457,6 @@ export async function apiRequest<T>(
     );
   }
 
-  const data =
-    await parseResponse(
-      response,
-      responseType
-    );
-
   /**
    * Token 失效
    */
@@ -487,15 +481,19 @@ export async function apiRequest<T>(
   }
 }
 
+  const data =
+    await parseResponse(
+      response,
+      response.ok ? responseType : "auto"
+    );
+
   /**
    * 其他非成功状态
    */
   if (!response.ok) {
-    const message =
-      extractErrorMessage(
-        data
-      ) ||
-      `请求失败：${response.status}`;
+    const message = response.status >= 500
+      ? `服务器暂时无法处理请求（${response.status}），请稍后重试或联系后端排查。`
+      : extractErrorMessage(data) || `请求失败：${response.status}`;
 
     throw new ApiError(
       message,

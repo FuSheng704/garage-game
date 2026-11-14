@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+@theme { --font-serif: 'Noto Serif SC', 'Songti SC', SimSun, serif; }
+:root { font-family: var(--font-serif); color: #fff4dc; background: #050d0f; }
+body { margin: 0; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 2px solid #76a9fa; outline-offset: 3px; }

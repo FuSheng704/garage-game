@@ -3338,3 +3338,42 @@
 .figma-auth-field input[type="password"]::-ms-clear {
   display: none;
 }
+
+/* Keep the existing trigger dimensions; only the option list scrolls. */
+.figma-auth-question-dropdown { position: relative; min-width: 0; }
+.figma-auth-question-options {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  max-height: 180px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: 50;
+  box-sizing: border-box;
+  padding: 4px;
+  border: 1px solid var(--auth-border);
+  border-radius: 6px;
+  background: var(--auth-input);
+  box-shadow: 0 5px 16px #26355420;
+}
+.figma-auth-question-option {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 4px;
+  padding: 9px 12px;
+  background: transparent;
+  color: var(--auth-text);
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+.figma-auth-question-option:hover,
+.figma-auth-question-option:focus-visible,
+.figma-auth-question-option[aria-pressed="true"] { background: #dce5f6; }
+@media (max-width: 1023px) {
+  .figma-auth-question-options { max-height: 72px; padding: 2px; top: calc(100% + 2px); }
+  .figma-auth-question-option { font-size: 7px; line-height: 10px; padding: 4px; }
+}

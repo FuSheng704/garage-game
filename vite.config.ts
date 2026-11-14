@@ -6,6 +6,10 @@ export default defineConfig({
 
   server: {
     proxy: {
+      "^/api/v1/rights-records(?:[?]|$)": {
+        target: "http://115.159.121.83",
+        changeOrigin: true,
+      },
       "/api": {
         target: "http://115.159.121.83:8001",
         changeOrigin: true,

@@ -18,6 +18,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -34,6 +35,7 @@ import {
   AUTH_UNAUTHORIZED_EVENT,
   clearAuthToken,
   hasAuthToken,
+  getAuthorizationHeader,
 } from "../api/client";
 
 import type {
@@ -146,6 +148,8 @@ interface AuthProviderProps {
 export function AuthProvider({
   children,
 }: AuthProviderProps) {
+  const sessionVersion = useRef(0);
+
   /**
    * 当前用户资料
    */
@@ -191,6 +195,8 @@ export function AuthProvider({
    */
   const refreshUser = useCallback(
     async (): Promise<void> => {
+      const version = sessionVersion.current;
+      const authorization = getAuthorizationHeader();
       if (!hasAuthToken()) {
         setUser(null);
         setIsAuthenticated(false);
@@ -201,9 +207,11 @@ export function AuthProvider({
         const currentUser =
           await getCurrentUserApi();
 
+        if (version !== sessionVersion.current || authorization !== getAuthorizationHeader()) return;
         setUser(currentUser);
         setIsAuthenticated(true);
       } catch (error) {
+        if (version !== sessionVersion.current) return;
         /**
          * 只有 Token 确实被清除时，
          * 才将用户标记为未登录。
@@ -237,8 +245,12 @@ const login = useCallback(
     params: LoginParams,
     remember = false
   ): Promise<CurrentUser | null> => {
+    const version = ++sessionVersion.current;
+    setInitializing(false);
     // 1. 登录并保存 Token
-    await loginApi(params, remember);
+    await loginApi(params, remember, () => version === sessionVersion.current);
+    if (version !== sessionVersion.current) throw new Error("登录请求已失效");
+    const authorization = getAuthorizationHeader();
 
     // 清除上一个账号可能残留的资料
     setUser(null);
@@ -248,6 +260,7 @@ const login = useCallback(
       // 2. 获取本次登录用户的资料
       const currentUser = await getCurrentUserApi();
 
+      if (version !== sessionVersion.current || authorization !== getAuthorizationHeader()) throw new Error("登录请求已失效");
       // 3. 更新全局状态
       setUser(currentUser);
       setIsAuthenticated(true);
@@ -255,6 +268,7 @@ const login = useCallback(
       // 4. 直接返回本次登录的用户资料
       return currentUser;
     } catch (error) {
+      if (version !== sessionVersion.current) throw error;
       // Token 确实失效，登录不能视为成功
       if (!hasAuthToken()) {
         setUser(null);
@@ -296,13 +310,14 @@ const login = useCallback(
    */
   const logout = useCallback(
     async (): Promise<void> => {
-      try {
-        await logoutApi();
-      } finally {
-        clearAuthToken();
-        setUser(null);
-        setIsAuthenticated(false);
-      }
+      ++sessionVersion.current;
+      // logoutApi synchronously captures the old authorization before local cleanup.
+      const request = logoutApi();
+      clearAuthToken();
+      setUser(null);
+      setIsAuthenticated(false);
+      setInitializing(false);
+      await request;
     },
     []
   );
@@ -315,6 +330,8 @@ const login = useCallback(
    */
   useEffect(() => {
     let cancelled = false;
+    const version = sessionVersion.current;
+    const authorization = getAuthorizationHeader();
 
     async function initializeAuth() {
       if (!hasAuthToken()) {
@@ -331,14 +348,14 @@ const login = useCallback(
         const currentUser =
           await getCurrentUserApi();
 
-        if (cancelled) {
+        if (cancelled || version !== sessionVersion.current || authorization !== getAuthorizationHeader()) {
           return;
         }
 
         setUser(currentUser);
         setIsAuthenticated(true);
       } catch {
-        if (cancelled) {
+        if (cancelled || version !== sessionVersion.current || authorization !== getAuthorizationHeader()) {
           return;
         }
 
@@ -354,7 +371,7 @@ const login = useCallback(
 
         setUser(null);
       } finally {
-        if (!cancelled) {
+        if (!cancelled && version === sessionVersion.current) {
           setInitializing(false);
         }
       }
@@ -374,6 +391,8 @@ const login = useCallback(
    */
   useEffect(() => {
     function handleUnauthorized() {
+      ++sessionVersion.current;
+      setInitializing(false);
       setUser(null);
       setIsAuthenticated(false);
     }

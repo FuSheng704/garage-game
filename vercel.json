@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/v1/rights-records",
+      "destination": "http://115.159.121.83/api/v1/rights-records"
+    },
+    {
       "source": "/api/:path*",
       "destination": "http://115.159.121.83:8001/:path*"
     },

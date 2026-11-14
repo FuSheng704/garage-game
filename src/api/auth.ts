@@ -7,7 +7,6 @@
 
 import {
   apiRequest,
-  clearAuthToken,
   setAuthToken,
   ApiError,
 } from "./client";
@@ -115,7 +114,8 @@ export async function registerApi(
  */
 export async function loginApi(
   params: LoginParams,
-  remember = false
+  remember = false,
+  isCurrent: () => boolean = () => true
 ): Promise<TokenResponse> {
   validateUID(params.username);
 
@@ -152,6 +152,7 @@ export async function loginApi(
     );
   }
 
+  if (!isCurrent()) throw new Error("登录请求已失效");
   setAuthToken(
     data.access_token,
     data.token_type || "Bearer",
@@ -213,7 +214,8 @@ export async function getCaptchaApi():
   }
 
   const captchaKey =
-    response.headers.get("X-CaptchaKey");
+    response.headers.get("X-CaptchaKey") ??
+    response.headers.get("Xcaptchakey");
 
   if (!captchaKey?.trim()) {
     throw new Error(
@@ -290,8 +292,12 @@ export async function getCurrentUserApi(): Promise<CurrentUser> {
 
   const user = data as Record<string, unknown>;
 
-  if (typeof user.profile_finished !== "boolean") {
-    throw new Error("用户信息缺少有效的 profile_finished 字段");
+  // Older/admin responses may omit profile_finished; do not discard valid user data.
+  if (user.profile_finished !== undefined && typeof user.profile_finished !== "boolean") {
+    throw new Error("用户信息 profile_finished 字段类型不正确");
+  }
+  if (user.is_admin !== undefined && typeof user.is_admin !== "boolean") {
+    throw new Error("用户信息 is_admin 字段类型不正确");
   }
 
   return user as unknown as CurrentUser;
@@ -700,20 +706,11 @@ export async function resetPasswordApi(
  *
  * POST /logout
  *
- * 无论后端退出请求是否成功，
- * 都清除本地 Token。
+ * 本地会话由 AuthContext 在发起请求后立即清理。
  */
-export async function logoutApi():
-  Promise<void> {
-  try {
-    await apiRequest<unknown>(
-      "/logout",
-      {
-        method: "POST",
-        responseType: "auto",
-      }
-    );
-  } finally {
-    clearAuthToken();
-  }
+export async function logoutApi(): Promise<void> {
+  await apiRequest<unknown>("/logout", {
+    method: "POST",
+    responseType: "auto",
+  });
 }

@@ -79,27 +79,27 @@ interface InputFieldProps {
 
 const asset = (name: string) => `/figma-auth/${name}`;
 
-const QUESTION_OPTIONS: [
-  string[],
-  string[],
-  string[]
-] = [
+const QUESTION_OPTIONS: [string[], string[], string[]] = [
   [
-    "你最喜欢的一句台词是什么？",
-    "你最难忘的旅行目的地是哪里？",
-    "你给自己起的专属昵称是什么？",
+    "母亲的名字（不含姓氏）？",
+    "你第一位兄弟姐妹的名字？",
+    "你出生的城市？",
+    "你童年长期居住的街道或小区名称？",
   ],
   [
-    "你最想去的一座城市是哪里？",
-    "你第一次养的宠物叫什么名字？",
-    "你最喜欢的一本书是什么？",
+    "你小学就读的学校名称？",
+    "你幼儿园所在的城市？",
+    "你高中班主任教授的学科？",
+    "你大学所在的城市？",
   ],
   [
-    "你小时候最喜欢的动画是什么？",
-    "你最喜欢的一种花是什么？",
-    "你最喜欢的一首歌是什么？",
+    "你第一只宠物的名字？",
+    "你童年最要好的朋友名字？",
+    "你童年最喜欢吃的食物？",
+    "你的出生年份？",
   ],
 ];
+const SECURITY_QUESTION_POOL = QUESTION_OPTIONS.flat();
 
 const MONTH_DAYS = [
   31, 29, 31, 30, 31, 30,
@@ -687,6 +687,15 @@ function Picker({
    主组件
    ============================================================ */
 
+function PolicyLinks() {
+  return (
+    <span>
+      <a className="figma-auth-link" href="/terms" target="_blank" rel="noopener noreferrer">《用户服务协议》</a>
+      <a className="figma-auth-link" href="/privacy" target="_blank" rel="noopener noreferrer">《隐私政策》</a>
+    </span>
+  );
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -700,6 +709,8 @@ export default function Login() {
   } = useAuth();
 
   /* ---------------- 页面模式 ---------------- */
+
+  const [openQuestionIndex, setOpenQuestionIndex] = useState<number | null>(null);
 
   const [mode, setMode] =
     useState<PageMode>("login");
@@ -879,6 +890,8 @@ const forgotRequestVersionRef = useRef(0);
 
   const captchaUrlRef = useRef("");
   const loginAttemptRef = useRef(false);
+  const [enteredAuthenticated] = useState(() => isAuthenticated);
+  const captchaRequestVersion = useRef(0);
   // 保存本次登录返回的用户资料，避免成功弹窗读取到上一轮的 React 状态。
   const loginResultRef = useRef<Awaited<ReturnType<typeof login>> | null>(null);
 
@@ -963,6 +976,7 @@ const forgotRequestVersionRef = useRef(0);
 
   const refreshCaptcha =
     useCallback(async () => {
+      const version = ++captchaRequestVersion.current;
       setCaptchaLoading(true);
       setCaptchaCode("");
       setCaptchaKey("");
@@ -971,6 +985,10 @@ const forgotRequestVersionRef = useRef(0);
         const result =
           await getCaptchaApi();
 
+        if (version !== captchaRequestVersion.current) {
+          URL.revokeObjectURL(result.imageUrl);
+          return;
+        }
         if (captchaUrlRef.current) {
           URL.revokeObjectURL(
             captchaUrlRef.current
@@ -990,18 +1008,19 @@ const forgotRequestVersionRef = useRef(0);
 
         setInlineError("");
       } catch (error) {
+        if (version !== captchaRequestVersion.current) return;
         setCaptchaImage("");
 
         setInlineError(
           getErrorMessage(error)
         );
       } finally {
-        setCaptchaLoading(false);
+        if (version === captchaRequestVersion.current) setCaptchaLoading(false);
       }
     }, []);
 
   useEffect(() => {
-    if (mode !== "login") {
+    if (mode !== "login" || initializing || (enteredAuthenticated && isAuthenticated)) {
       return;
     }
 
@@ -1014,10 +1033,11 @@ const forgotRequestVersionRef = useRef(0);
     return () => {
       window.clearTimeout(timer);
     };
-  }, [mode, refreshCaptcha]);
+  }, [mode, refreshCaptcha, initializing, enteredAuthenticated, isAuthenticated]);
 
   useEffect(() => {
     return () => {
+      ++captchaRequestVersion.current;
       if (captchaUrlRef.current) {
         URL.revokeObjectURL(
           captchaUrlRef.current
@@ -1036,6 +1056,7 @@ const forgotRequestVersionRef = useRef(0);
     forgotRequestVersionRef.current += 1;
     setResetToken("");
     setResetTokenExpiresAt(0);
+    setOpenQuestionIndex(null);
     setMode(nextMode);
     setInlineError("");
     setForgotError("");
@@ -1099,6 +1120,7 @@ const forgotRequestVersionRef = useRef(0);
     dialog,
     mode,
     navigate,
+    redirectPath,
   ]);
 
   /* ==========================================================
@@ -1386,6 +1408,10 @@ const forgotRequestVersionRef = useRef(0);
         (item) => ({ ...item })
       ) as SecurityQuestions;
 
+      if (field === "question") {
+        if (!SECURITY_QUESTION_POOL.includes(value) || previous.some((item, otherIndex) => otherIndex !== index && item.question === value)) return previous;
+        if (next[index].question !== value) next[index].answer = "";
+      }
       next[index][field] = value;
 
       return next;
@@ -1917,6 +1943,8 @@ const handleForgotStepTwo = async (
     });
   };
 
+  if (initializing || (enteredAuthenticated && isAuthenticated)) return null;
+
   if (guestEntered) {
     return (
       <main className="figma-auth-guest-page">
@@ -2230,9 +2258,10 @@ const handleForgotStepTwo = async (
                 </button>
               </div>
 
-              <label className="figma-auth-checkbox-label figma-auth-agreement">
+              <div className="figma-auth-checkbox-label figma-auth-agreement">
                 <input
                   type="checkbox"
+                  id="login-policy-consent"
                   checked={privacyAgreed}
                   onChange={(event) => {
                     setPrivacyAgreed(
@@ -2242,12 +2271,10 @@ const handleForgotStepTwo = async (
                 />
 
                 <span>
-                  我已阅读并同意
-                  <span className="figma-auth-link">
-                    《用户协议》《隐私政策》
-                  </span>
+                  <label htmlFor="login-policy-consent">我已阅读并同意</label>
+                  <PolicyLinks />
                 </span>
-              </label>
+              </div>
 
               <button
                 className="figma-auth-primary"
@@ -2362,6 +2389,10 @@ const handleForgotStepTwo = async (
                   </button>
 
                   <div className="figma-auth-register-footer">
+                    <PolicyLinks />
+                  </div>
+
+                  <div className="figma-auth-register-footer">
                     已经有账号？
 
                     <button
@@ -2395,6 +2426,7 @@ const handleForgotStepTwo = async (
                   <p className="figma-auth-security-notice">
                     密保问题将用于忘记密码时的身份验证，
                     请填写不易被他人猜到、且自己能够记住的答案。
+                    <PolicyLinks />
                   </p>
 
                   {questions.map(
@@ -2414,22 +2446,61 @@ const handleForgotStepTwo = async (
                           }
                         </label>
 
-                        <button
-                          type="button"
-                          className="figma-auth-select-field"
-                          onClick={() => {
-                            setPicker(
-                              `q${index + 1}` as PickerType
-                            );
+                        <div
+                          className="figma-auth-question-dropdown"
+                          onBlur={(event) => {
+                            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpenQuestionIndex(null);
+                          }}
+                          onKeyDown={(event) => {
+                            if (event.key === "Escape") {
+                              setOpenQuestionIndex(null);
+                              event.currentTarget.querySelector<HTMLButtonElement>(".figma-auth-select-field")?.focus();
+                            }
+                            if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                              event.preventDefault();
+                              setOpenQuestionIndex(index);
+                              const container = event.currentTarget;
+                              const key = event.key;
+                              requestAnimationFrame(() => {
+                                const buttons = Array.from(container.querySelectorAll<HTMLButtonElement>(".figma-auth-question-option"));
+                                const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+                                const next = key === "ArrowDown" ? (current + 1) % buttons.length : (current <= 0 ? buttons.length - 1 : current - 1);
+                                buttons[next]?.focus();
+                              });
+                            }
                           }}
                         >
-                          <span>
-                            {item.question ||
-                              "请选择一个密保问题"}
-                          </span>
-
-                          <span>⌄</span>
-                        </button>
+                          <button
+                            type="button"
+                            className="figma-auth-select-field"
+                            aria-label={`密保问题${index + 1}`}
+                            aria-expanded={openQuestionIndex === index}
+                            aria-controls={`security-question-options-${index}`}
+                            disabled={loading}
+                            onClick={() => setOpenQuestionIndex(openQuestionIndex === index ? null : index)}
+                          >
+                            <span>{item.question || "请选择一个密保问题"}</span><span>⌄</span>
+                          </button>
+                          {openQuestionIndex === index && (
+                            <div className="figma-auth-question-options" id={`security-question-options-${index}`}>
+                              {SECURITY_QUESTION_POOL.filter((question) =>
+                                !questions.some((selected, otherIndex) => otherIndex !== index && selected.question === question)
+                              ).map((question) => (
+                                <button
+                                  type="button"
+                                  key={question}
+                                  className="figma-auth-question-option"
+                                  aria-pressed={item.question === question}
+                                  onClick={() => {
+                                    updateQuestion(index, "question", question);
+                                    setOpenQuestionIndex(null);
+                                    document.querySelector<HTMLButtonElement>(`[aria-controls="security-question-options-${index}"]`)?.focus();
+                                  }}
+                                >{question}</button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
 
                         <input
                           className="figma-auth-answer-field"

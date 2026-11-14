@@ -77,6 +77,9 @@ export interface ProfileSetupParams {
 export type CurrentUser =
   | string
   | {
+      user_id?: number;
+      is_admin?: boolean;
+      nickname_remain?: number;
       username?: string;
       uid?: string;
       nickname?: string;

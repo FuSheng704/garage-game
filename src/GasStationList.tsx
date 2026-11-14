@@ -7,15 +7,21 @@ import helmetImg from './assets/helmet.png';
 import osbornTableBg from './assets/osborn-table-bg.png';
 import osbornHand from './assets/osborn-hand.png';
 import './GasStationList.css';
+import { apiRequest } from './api/client';
 
 interface BackendRecordItem {
   id: number;
   category_id: number;
   title: string;
   category_name: string;
-  summary?: string;
-  content: string;
-  related_url?: string;
+  summary?: string | null;
+  content: string | null;
+  event_overview?: string | null;
+  problem_points?: string | null;
+  demands?: string | null;
+  rights_copy?: string | null;
+  handling_status?: string | null;
+  related_url?: string | null;
   created_at: string;
 }
 
@@ -26,12 +32,14 @@ interface BackendResp {
 interface RecordItem {
   id: number;
   shortTitle: string;
+  categoryId: number;
+  legacyContent: string;
   title: string;
   subDesc: string;
   category: string;
   date: string;
   dateKey: number;
-  status: '未处理' | '已修改' | '有回应';
+  status: '未处理' | '已修改' | '有回应' | '暂无状态';
   overview: string;
   issue: string;
   demand: string;
@@ -39,156 +47,28 @@ interface RecordItem {
   link: string;
 }
 
-const mockBackendDb: BackendRecordItem[] = [
-  {
-    id: 1001,
-    category_id: 1,
-    title: '萧逸26年生日相关',
-    category_name: '生日活动',
-    summary: '关于萧逸2026年生日活动的美术、UI、卡面及物料设计反馈',
-    content:
-      '1. 正确绘制萧逸五官保证其精致度，正视睁眼看镜头让玩家感知情绪。\n2. 保证萧逸生日卡面，突出【小主】主题，与日常卡有区分。\n3. 禁止使用黑手手绘，提高眼睛精致度，必须贴合前期原画设定，规避设计抄袭风险。\n4. 活动场景采用【深蓝】【浅蓝】混搭，增加赛道其他动物场景含量，拒绝局限于蛋糕。\n5. 增加文本量保证质量，约会以萧逸为核心展开，保证情感线占比。\n6. 认真审视生日物料，明确萧逸蓝色代表色，单项设计以黑色为主。',
-    related_url: 'https://example.com/link1',
-    created_at: '2026-08-10T10:00:00+08:00',
-  },
-  {
-    id: 1002,
-    category_id: 2,
-    title: '「全速等待」文案相关',
-    category_name: '文案内容',
-    summary: '其他男主新卡电话文案使用「全速等待」引发争议',
-    content: '核查全文，替换相似表述，调整句式，规避撞梗风险，保留故事内核。',
-    related_url: 'https://example.com/link2',
-    created_at: '2026-08-11T10:00:00+08:00',
-  },
-  {
-    id: 1003,
-    category_id: 3,
-    title: '动物恶龙造型相关',
-    category_name: '角色设定',
-    summary: '[恶龙]是萧逸的重要设定，反对任何污名及弱化行为',
-    content: '坚守官方基础人设，不做脱离原作的衍生捆绑设定，把控二创引导边界。',
-    related_url: 'https://example.com/link3',
-    created_at: '2026-08-12T10:00:00+08:00',
-  },
-  {
-    id: 1004,
-    category_id: 4,
-    title: '520好感度情头相关',
-    category_name: '美术物料',
-    summary: '萧逸520好感度情头背景缺少装饰，蓝色配色问题',
-    content: '调整背景配色，增加细节装饰，统一画面光影风格，贴合萧逸蓝色主调。',
-    related_url: 'https://example.com/link4',
-    created_at: '2026-08-13T10:00:00+08:00',
-  },
-  {
-    id: 1005,
-    category_id: 5,
-    title: '音乐会打call票根颜色相关',
-    category_name: '线下活动',
-    summary: '萧逸音乐会快闪打call卡紫颜色引发反馈',
-    content: '重新调整票根色彩，以萧逸代表色为主，优化版式与图文排版。',
-    related_url: 'https://example.com/link5',
-    created_at: '2026-08-14T10:00:00+08:00',
-  },
-  {
-    id: 1006,
-    category_id: 4,
-    title: '赛车涂装配色优化',
-    category_name: '美术物料',
-    summary: '赛车外观涂装色彩与线条细节优化反馈',
-    content: '优化赛车主体蓝黑配色，修正线条锯齿，增加专属标识细节。',
-    related_url: 'https://example.com/link6',
-    created_at: '2026-09-01T10:00:00+08:00',
-  },
-  {
-    id: 1007,
-    category_id: 2,
-    title: '主线剧情台词校对',
-    category_name: '文案内容',
-    summary: '主线部分台词人设偏差，需要校对修正',
-    content: '统一萧逸人物说话口吻，修正OOC台词，梳理对话逻辑。',
-    related_url: 'https://example.com/link7',
-    created_at: '2026-09-02T10:00:00+08:00',
-  },
-  {
-    id: 1008,
-    category_id: 2,
-    title: '主线剧情台词校对',
-    category_name: '文案内容',
-    summary: '主线部分台词人设偏差，需要校对修正',
-    content: '统一萧逸人物说话口吻，修正OOC台词，梳理对话逻辑。',
-    related_url: 'https://example.com/link7',
-    created_at: '2026-09-02T10:00:00+08:00',
-  },
-  {
-    id: 1009,
-    category_id: 2,
-    title: '主线剧情台词校对',
-    category_name: '文案内容',
-    summary: '主线部分台词人设偏差，需要校对修正',
-    content: '统一萧逸人物说话口吻，修正OOC台词，梳理对话逻辑。',
-    related_url: 'https://example.com/link7',
-    created_at: '2026-09-02T10:00:00+08:00',
-  },
-];
-
-// 用于演示第一条记录的详情。
-// 正式接入后端后，应改为读取接口返回的内容。
-const screenshotDetailForFirstRecord = {
-  overview:
-    '针对萧逸2026年生日活动的整体美术、卡面、服装立绘、文案及宣发内容提出优化意见，希望生日活动能够更突出萧逸个人特色与角色设定，提升整体完成度与专属感。',
-  issue: [
-    '主题创意不足：生日主题与日常内容区分度较弱，对萧逸个人设定挖掘不足。',
-    '美术表现存在偏差：卡面人物五官、神态、构图及配色等表现未充分突出角色特色。',
-    '服装立绘问题：服饰风格与细节丰富度不足，部分立绘姿势及角色塑造存在争议。',
-    '文案与内容不足：剧情、恋爱细节及角色中心度有进一步提升空间。',
-    '宣发与周边欠缺：生日宣发力度、内容审核及周边设计的角色关联性不足。',
-  ].join('\n'),
-  demand: [
-    '深入萧逸人设进行生日主题创新，增强生日卡与日常卡面的差异化。',
-    '优化卡面五官、神态、构图、光影及配色，保证角色形象稳定准确。',
-    '丰富服装、发型及配饰设计，提升精致度与多样性，并避免争议性立绘表现。',
-    '增加以萧逸为核心的剧情和恋爱内容，提高文本量与情感完整度。',
-    '加强生日活动宣发及内容审核，周边设计更多结合萧逸代表性元素。',
-  ].join('\n'),
-};
-
-async function mockFetchIssueList(
-  category_id?: number,
-  keyword?: string
-): Promise<BackendResp> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
-  let list = [...mockBackendDb];
-
-  if (category_id !== undefined) {
-    list = list.filter((item) => item.category_id === category_id);
-  }
-
-  if (keyword?.trim()) {
-    const kw = keyword.trim().toLowerCase();
-
-    list = list.filter(
-      (item) =>
-        item.title.toLowerCase().includes(kw) ||
-        (item.summary?.toLowerCase().includes(kw) ?? false) ||
-        item.content.toLowerCase().includes(kw)
-    );
-  }
-
-  return { records: list };
+function legacyPlainText(value: string | null): string {
+  if (!value) return '';
+  if (!/<[a-z][^>]*>/i.test(value)) return value;
+  const template = document.createElement('template');
+  template.innerHTML = value;
+  template.content.querySelectorAll('script, style, template').forEach((element) => element.remove());
+  template.content.querySelectorAll('br, p, div, li').forEach((element) => element.after('\n'));
+  return template.content.textContent?.trim() ?? '';
 }
 
-const categoryMap = [
-  { id: 1, name: '生日活动' },
-  { id: 4, name: '美术物料' },
-  { id: 2, name: '文案内容' },
-  { id: 3, name: '角色设定' },
-  { id: 5, name: '线下活动' },
-];
+function safeRelatedUrl(value?: string | null): string {
+  if (!value) return '';
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : '';
+  } catch {
+    return '';
+  }
+}
 
 type DetailBlockKey =
+  | 'legacyContent'
   | 'overview'
   | 'issue'
   | 'demand'
@@ -281,44 +161,34 @@ function useStagePosition(): StagePosition {
 function backendToFrontend(
   backendItem: BackendRecordItem
 ): RecordItem {
-  const d = new Date(backendItem.created_at);
-
-  const shortTitles: Record<number, string> = {
-    1001: '26年生日',
-    1002: '「全速等待」文案',
-    1003: '恶龙塑相关',
-    1004: '520情头相关',
-    1005: '音乐会票根相关',
-  };
+  const date = new Date(backendItem.created_at);
+  const validDate = Number.isFinite(date.getTime());
+  const month = validDate
+    ? new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit' }).formatToParts(date)
+    : [];
+  const year = Number(month.find((part) => part.type === 'year')?.value);
+  const monthNumber = Number(month.find((part) => part.type === 'month')?.value);
+  const statuses = { unhandled: '未处理', modified: '已修改', responded: '有回应' } as const;
+  const status = backendItem.handling_status;
 
   return {
     id: backendItem.id,
-    shortTitle:
-      shortTitles[backendItem.id] ??
-      backendItem.title.slice(0, 12),
+    shortTitle: backendItem.title.slice(0, 12),
     title: backendItem.title,
     subDesc: backendItem.summary ?? '',
+    categoryId: backendItem.category_id,
     category: backendItem.category_name,
-    date: `${d.getFullYear()}.${d.getMonth() + 1}`,
-    dateKey:
-      d.getFullYear() * 100 +
-      d.getMonth() +
-      1,
-    status: '未处理',
-    overview:
-      backendItem.id === 1001
-        ? screenshotDetailForFirstRecord.overview
-        : backendItem.summary ?? '',
-    issue:
-      backendItem.id === 1001
-        ? screenshotDetailForFirstRecord.issue
-        : '待后端扩展此字段',
-    demand:
-      backendItem.id === 1001
-        ? screenshotDetailForFirstRecord.demand
-        : '待后端扩展此字段',
-    textContent: backendItem.content,
-    link: backendItem.related_url ?? '',
+    date: validDate ? `${year}.${monthNumber}` : '—',
+    dateKey: validDate ? year * 100 + monthNumber : 0,
+    status: status === 'unhandled' || status === 'modified' || status === 'responded'
+      ? statuses[status]
+      : '暂无状态',
+    overview: backendItem.event_overview ?? '',
+    issue: backendItem.problem_points ?? '',
+    demand: backendItem.demands ?? '',
+    textContent: backendItem.rights_copy ?? '',
+    legacyContent: legacyPlainText(backendItem.content),
+    link: safeRelatedUrl(backendItem.related_url),
   };
 }
 
@@ -435,7 +305,8 @@ const GasStationPage: React.FC = () => {
   const [selectedCategoryId, setSelectedCategoryId] =
     useState<number | undefined>(undefined);
 
-  const [otherOnly, setOtherOnly] = useState(false);
+  const [listError, setListError] = useState(false);
+  const [reloadCount, setReloadCount] = useState(0);
 
   const [recordList, setRecordList] =
     useState<RecordItem[]>([]);
@@ -484,40 +355,32 @@ const GasStationPage: React.FC = () => {
   useEffect(() => {
     if (page !== 'list') return;
 
-    let active = true;
-
+    const controller = new AbortController();
     setLoading(true);
+    setListError(false);
 
-    mockFetchIssueList(
-      selectedCategoryId,
-      searchKey
-    )
-      .then((resp) => {
-        if (active) {
-          setRecordList(
-            resp.records.map(backendToFrontend)
-          );
-        }
+    apiRequest<BackendResp>('/v1/rights-records', {
+      auth: false,
+      responseType: 'json',
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!controller.signal.aborted) setRecordList(response.records.map(backendToFrontend));
       })
-      .catch((error: unknown) => {
-        if (active) {
-          console.error('获取列表失败', error);
-        }
+      .catch(() => {
+        if (!controller.signal.aborted) setListError(true);
       })
       .finally(() => {
-        if (active) {
-          setLoading(false);
-        }
+        if (!controller.signal.aborted) setLoading(false);
       });
 
-    return () => {
-      active = false;
-    };
-  }, [
-    page,
-    selectedCategoryId,
-    searchKey,
-  ]);
+    return () => controller.abort();
+  }, [page, reloadCount]);
+
+  const categoryMap = useMemo(() => Array.from(
+    new Map(recordList.map((item) => [item.categoryId, item.category])),
+    ([id, name]) => ({ id, name })
+  ).sort((left, right) => left.id - right.id), [recordList]);
 
   const filteredRecords = useMemo(() => {
     const start =
@@ -532,15 +395,11 @@ const GasStationPage: React.FC = () => {
           Number(endMonth)
         : null;
 
+    const keyword = searchKey.trim().toLowerCase();
+
     return recordList.filter((item) => {
-      if (
-        otherOnly &&
-        categoryMap.some(
-          (cat) => cat.name === item.category
-        )
-      ) {
-        return false;
-      }
+      if (selectedCategoryId !== undefined && item.categoryId !== selectedCategoryId) return false;
+      if (keyword && !item.legacyContent.toLowerCase().includes(keyword)) return false;
 
       if (
         start !== null &&
@@ -560,7 +419,8 @@ const GasStationPage: React.FC = () => {
     });
   }, [
     recordList,
-    otherOnly,
+    selectedCategoryId,
+    searchKey,
     startYear,
     startMonth,
     endYear,
@@ -670,8 +530,6 @@ const GasStationPage: React.FC = () => {
   const handleCategoryClick = (
     catId: number | undefined
   ) => {
-    setOtherOnly(false);
-
     setSelectedCategoryId((prev) =>
       prev === catId ? undefined : catId
     );
@@ -772,7 +630,7 @@ const GasStationPage: React.FC = () => {
                   ? 'pending'
                   : item.status === '已修改'
                   ? 'updated'
-                  : 'replied'
+                  : item.status === '有回应' ? 'replied' : 'unknown'
               }`}
             >
               <span className="pit-status-dot" />
@@ -800,7 +658,7 @@ const GasStationPage: React.FC = () => {
 
     const isBulletList =
       (key === 'issue' || key === 'demand') &&
-      selectedItem.id === 1001;
+      Boolean(value);
 
     const isNumberedText =
       key === 'text' &&
@@ -826,13 +684,13 @@ const GasStationPage: React.FC = () => {
             </span>
           </div>
 
-          {key === 'text' && (
+          {(key === 'text' || key === 'legacyContent') && value && (
             <button
               type="button"
               className="pit-detail-copy-icon"
               onClick={() => void copyText(value)}
-              aria-label="复制维权文案"
-              title="复制维权文案"
+              aria-label={`复制${chinese}`}
+              title={`复制${chinese}`}
             >
               <DetailGlyph
                 kind="copy"
@@ -898,7 +756,7 @@ const GasStationPage: React.FC = () => {
                 ))}
             </ol>
           ) : (
-            <p className="pit-detail-block-body">
+            <p className="pit-detail-block-body" style={{ whiteSpace: 'pre-wrap' }}>
               {value || '暂无内容'}
             </p>
           )}
@@ -1074,8 +932,8 @@ const GasStationPage: React.FC = () => {
                       event.target.value
                     )
                   }
-                  placeholder="搜索关键词/标题/标签..."
-                  aria-label="搜索关键词、标题或标签"
+                  placeholder="搜索维权正文…"
+                  aria-label="搜索维权正文"
                 />
 
                 <span className="pit-search-enter">
@@ -1164,6 +1022,10 @@ const GasStationPage: React.FC = () => {
                     <div className="pit-table-empty">
                       加载中...
                     </div>
+                  ) : listError ? (
+                    <div className="pit-table-empty">
+                      加载失败。 <button type="button" onClick={() => setReloadCount((count) => count + 1)}>重试</button>
+                    </div>
                   ) : filteredRecords.length === 0 ? (
                     <div className="pit-table-empty">
                       暂无数据
@@ -1209,6 +1071,10 @@ const GasStationPage: React.FC = () => {
                     <div className="pit-table-empty">
                       加载中...
                     </div>
+                  ) : listError ? (
+                    <div className="pit-table-empty">
+                      加载失败。 <button type="button" onClick={() => setReloadCount((count) => count + 1)}>重试</button>
+                    </div>
                   ) : filteredRecords.length === 0 ? (
                     <div className="pit-table-empty">
                       暂无数据
@@ -1250,7 +1116,7 @@ const GasStationPage: React.FC = () => {
                     }
                     className={
                       selectedCategoryId ===
-                        cat.id && !otherOnly
+                        cat.id
                         ? 'pit-filter-active'
                         : ''
                     }
@@ -1259,35 +1125,13 @@ const GasStationPage: React.FC = () => {
                     }
                     aria-pressed={
                       selectedCategoryId ===
-                        cat.id && !otherOnly
+                        cat.id
                     }
                   >
                     {cat.name}
                   </button>
                 ))}
 
-                <button
-                  type="button"
-                  tabIndex={
-                    panelCollapsed ? -1 : 0
-                  }
-                  className={
-                    otherOnly
-                      ? 'pit-filter-active'
-                      : ''
-                  }
-                  onClick={() => {
-                    setSelectedCategoryId(
-                      undefined
-                    );
-                    setOtherOnly(
-                      (prev) => !prev
-                    );
-                  }}
-                  aria-pressed={otherOnly}
-                >
-                  其他
-                </button>
               </div>
 
               <div className="pit-date-heading">
@@ -1509,6 +1353,8 @@ const GasStationPage: React.FC = () => {
                       </div>
 
                       <div className="pit-detail-column pit-detail-column--middle">
+                        {selectedItem.legacyContent && !selectedItem.textContent &&
+                          renderDetailBlock('legacyContent', '维权正文', 'CONTENT', 'text')}
                         {renderDetailBlock(
                           'demand',
                           '具体诉求',
@@ -1549,7 +1395,7 @@ const GasStationPage: React.FC = () => {
                               : selectedItem.status ===
                                 '已修改'
                               ? 'updated'
-                              : 'replied'
+                              : selectedItem.status === '有回应' ? 'replied' : 'unknown'
                           }`}
                         >
                           <span className="pit-status-dot" />

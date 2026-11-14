@@ -2,6 +2,7 @@ import {
   useState,
 } from "react";
 
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 function getUsername(
@@ -32,6 +33,8 @@ function getUsername(
 export default function Home() {
   const {
     user,
+    isLogin,
+    isLoading,
     logout,
     refreshUser,
   } = useAuth();
@@ -46,8 +49,9 @@ export default function Home() {
     setMessage,
   ] = useState("");
 
+  const navigate = useNavigate();
   const username =
-    getUsername(user);
+    isLogin ? getUsername(user) : "游客";
 
   const handleRefreshUser =
     async () => {
@@ -80,6 +84,9 @@ export default function Home() {
 
       try {
         await logout();
+        navigate("/login", { replace: true });
+      } catch {
+        setMessage("已退出本地登录，服务器未确认退出。");
       } finally {
         setLoading(false);
       }
@@ -97,9 +104,10 @@ export default function Home() {
             <p className="mt-1 text-sm text-slate-500">
               项目主页
             </p>
+            <Link to="/candy" className="mt-2 inline-block text-sm text-blue-700 underline">糖果屋</Link>
           </div>
 
-          <button
+          {isLogin ? <button
             type="button"
             disabled={
               loading
@@ -110,7 +118,7 @@ export default function Home() {
             className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
           >
             退出登录
-          </button>
+          </button> : !isLoading && <Link to="/login">登录</Link>}
         </div>
       </header>
 

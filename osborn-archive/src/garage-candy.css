@@ -1,0 +1,10 @@
+.garage-candy {
+  font-family: 'Noto Serif SC', 'Songti SC', SimSun, serif;
+  color: #fff4dc;
+  background: #050d0f;
+}
+.garage-candy button { cursor: pointer; }
+.garage-candy button:focus-visible, .garage-candy input:focus-visible {
+  outline: 2px solid #76a9fa;
+  outline-offset: 3px;
+}
