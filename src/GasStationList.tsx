@@ -8,6 +8,7 @@ import osbornTableBg from './assets/osborn-table-bg.png';
 import osbornHand from './assets/osborn-hand.png';
 import './GasStationList.css';
 import { apiRequest } from './api/client';
+import RightsGallery from './RightsGallery';
 
 interface BackendRecordItem {
   id: number;
@@ -22,6 +23,7 @@ interface BackendRecordItem {
   rights_copy?: string | null;
   handling_status?: string | null;
   related_url?: string | null;
+  image_urls?: string[] | null;
   created_at: string;
 }
 
@@ -45,6 +47,7 @@ interface RecordItem {
   demand: string;
   textContent: string;
   link: string;
+  imageUrls: string[];
 }
 
 function legacyPlainText(value: string | null): string {
@@ -189,6 +192,9 @@ function backendToFrontend(
     textContent: backendItem.rights_copy ?? '',
     legacyContent: legacyPlainText(backendItem.content),
     link: safeRelatedUrl(backendItem.related_url),
+    imageUrls: Array.isArray(backendItem.image_urls)
+      ? [...new Set(backendItem.image_urls.map(safeRelatedUrl).filter(Boolean))]
+      : [],
   };
 }
 
@@ -308,10 +314,17 @@ const GasStationPage: React.FC = () => {
   const [listError, setListError] = useState(false);
   const [reloadCount, setReloadCount] = useState(0);
 
-  const [recordList, setRecordList] =
+  const [allRecords, setAllRecords] =
     useState<RecordItem[]>([]);
+  const [matchedRecords, setMatchedRecords] = useState<RecordItem[]>([]);
+  const [loadingMatches, setLoadingMatches] = useState(false);
+  const [matchError, setMatchError] = useState(false);
 
-  const [loading, setLoading] = useState(false);
+  const [loadingAll, setLoadingAll] = useState(false);
+  const keyword = searchKey.trim();
+  const hasServerFilters = selectedCategoryId !== undefined || keyword !== '';
+  const recordList = hasServerFilters ? matchedRecords : allRecords;
+  const loading = hasServerFilters ? loadingMatches : loadingAll;
 
   const [isBgmPlaying, setIsBgmPlaying] =
     useState(false);
@@ -356,7 +369,7 @@ const GasStationPage: React.FC = () => {
     if (page !== 'list') return;
 
     const controller = new AbortController();
-    setLoading(true);
+    setLoadingAll(true);
     setListError(false);
 
     apiRequest<BackendResp>('/v1/rights-records', {
@@ -365,22 +378,53 @@ const GasStationPage: React.FC = () => {
       signal: controller.signal,
     })
       .then((response) => {
-        if (!controller.signal.aborted) setRecordList(response.records.map(backendToFrontend));
+        if (!controller.signal.aborted) setAllRecords(response.records.map(backendToFrontend));
       })
       .catch(() => {
         if (!controller.signal.aborted) setListError(true);
       })
       .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) setLoadingAll(false);
       });
 
     return () => controller.abort();
   }, [page, reloadCount]);
 
+  useEffect(() => {
+    if (page !== 'list' || !hasServerFilters) return;
+
+    const controller = new AbortController();
+    const params = new URLSearchParams();
+    if (selectedCategoryId !== undefined) params.set('category_id', String(selectedCategoryId));
+    if (keyword) params.set('keyword', keyword);
+
+    setLoadingMatches(true);
+    setMatchError(false);
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await apiRequest<BackendResp>(`/v1/rights-records?${params}`, {
+          auth: false,
+          responseType: 'json',
+          signal: controller.signal,
+        });
+        if (!controller.signal.aborted) setMatchedRecords(response.records.map(backendToFrontend));
+      } catch {
+        if (!controller.signal.aborted) setMatchError(true);
+      } finally {
+        if (!controller.signal.aborted) setLoadingMatches(false);
+      }
+    }, keyword ? 250 : 0);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [page, reloadCount, hasServerFilters, selectedCategoryId, keyword]);
+
   const categoryMap = useMemo(() => Array.from(
-    new Map(recordList.map((item) => [item.categoryId, item.category])),
+    new Map(allRecords.map((item) => [item.categoryId, item.category])),
     ([id, name]) => ({ id, name })
-  ).sort((left, right) => left.id - right.id), [recordList]);
+  ).sort((left, right) => left.id - right.id), [allRecords]);
 
   const filteredRecords = useMemo(() => {
     const start =
@@ -395,12 +439,7 @@ const GasStationPage: React.FC = () => {
           Number(endMonth)
         : null;
 
-    const keyword = searchKey.trim().toLowerCase();
-
     return recordList.filter((item) => {
-      if (selectedCategoryId !== undefined && item.categoryId !== selectedCategoryId) return false;
-      if (keyword && !item.legacyContent.toLowerCase().includes(keyword)) return false;
-
       if (
         start !== null &&
         item.dateKey < start
@@ -419,8 +458,6 @@ const GasStationPage: React.FC = () => {
     });
   }, [
     recordList,
-    selectedCategoryId,
-    searchKey,
     startYear,
     startMonth,
     endYear,
@@ -1022,7 +1059,7 @@ const GasStationPage: React.FC = () => {
                     <div className="pit-table-empty">
                       加载中...
                     </div>
-                  ) : listError ? (
+                  ) : (hasServerFilters ? matchError : listError) ? (
                     <div className="pit-table-empty">
                       加载失败。 <button type="button" onClick={() => setReloadCount((count) => count + 1)}>重试</button>
                     </div>
@@ -1071,7 +1108,7 @@ const GasStationPage: React.FC = () => {
                     <div className="pit-table-empty">
                       加载中...
                     </div>
-                  ) : listError ? (
+                  ) : (hasServerFilters ? matchError : listError) ? (
                     <div className="pit-table-empty">
                       加载失败。 <button type="button" onClick={() => setReloadCount((count) => count + 1)}>重试</button>
                     </div>
@@ -1403,6 +1440,7 @@ const GasStationPage: React.FC = () => {
                         </span>
                       </div>
                     </div>
+                    <RightsGallery key={selectedItem.id} urls={selectedItem.imageUrls} />
                   </div>
                 </section>
 
