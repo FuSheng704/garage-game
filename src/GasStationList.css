@@ -62,16 +62,68 @@
   background-color: #050506;
 }
 
-.pit-splash-entry {
+.pit-entrance-artboard {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  transform: scale(.8286458333);
+  transform-origin: top left;
+}
+.pit-entrance-background {
   position: absolute;
-  top: 4%;
-  left: 2%;
-  width: 36%;
-  height: 72%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pit-splash-entry,
+.pit-entrance-back {
+  position: absolute;
   padding: 0;
   border: 0;
   background: transparent;
+  color: white;
 }
+.pit-splash-entry {
+  top: 244px;
+  left: 45px;
+  width: 698px;
+  height: 521px;
+}
+.pit-splash-entry > img {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 710px;
+  height: 533px;
+  max-width: none;
+  clip-path: polygon(1.3% 2%, 99% 21%, 98.8% 90%, 1.3% 98.9%);
+}
+.pit-entrance-back {
+  top: 25px;
+  left: 76px;
+  width: 170px;
+  height: 74px;
+  text-shadow: 0 0 2px black;
+}
+.pit-entrance-back > img { position: absolute; top: 5px; left: 7px; }
+.pit-entrance-back > span { position: absolute; top: 15px; left: 89px; font-size: 30px; font-weight: 500; }
+.pit-splash-entry:focus-visible,
+.pit-entrance-back:focus-visible { outline: 2px solid white; outline-offset: 3px; }
+.pit-stage--mobile .pit-entrance-artboard { width: 667px; height: 375px; transform: none; }
+.pit-stage--mobile .pit-splash-entry { top: 85px; left: 15.5px; width: 242px; height: 180.5px; }
+.pit-stage--mobile .pit-splash-entry > img {
+  left: -2px;
+  top: -2px;
+  width: 246px;
+  height: 185px;
+  clip-path: polygon(1.1% 1.8%, 99.1% 23.2%, 98.7% 90.5%, 1.1% 98.9%);
+}
+.pit-stage--mobile .pit-entrance-back { top: 19px; left: 12px; width: 86px; height: 40px; }
+.pit-stage--mobile .pit-entrance-back > img { top: 10.49px; left: 14.5px; }
+.pit-stage--mobile .pit-entrance-back > span { top: 10px; left: 43.5px; font-size: 14px; line-height: 20px; font-weight: 600; }
+.pit-stage--portrait .pit-entrance-artboard { position: absolute; top: 228px; transform: scale(.56221889); }
 
 
 .pit-scene-shade {

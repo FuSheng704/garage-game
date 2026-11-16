@@ -1,6 +1,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import pitMainBg from './assets/pit-bg.png';
+import PitEntrance from './PitEntrance';
 import pitBg from './assets/pit-bg.png';
 import glitterBullet from './assets/glitter-bullet.png';
 import helmetImg from './assets/helmet.png';
@@ -68,6 +68,18 @@ function safeRelatedUrl(value?: string | null): string {
   } catch {
     return '';
   }
+}
+
+function rightsImageUrl(value: string): string {
+  const safeUrl = safeRelatedUrl(value);
+  if (!safeUrl) return '';
+
+  const url = new URL(safeUrl);
+  // Both Vite and Vercel forward this same-origin path to the image server.
+  if (url.origin === 'http://115.159.121.83:8001' && url.pathname.startsWith('/upload_images/')) {
+    return `/api${url.pathname}${url.search}`;
+  }
+  return safeUrl;
 }
 
 type DetailBlockKey =
@@ -193,7 +205,7 @@ function backendToFrontend(
     legacyContent: legacyPlainText(backendItem.content),
     link: safeRelatedUrl(backendItem.related_url),
     imageUrls: Array.isArray(backendItem.image_urls)
-      ? [...new Set(backendItem.image_urls.map(safeRelatedUrl).filter(Boolean))]
+      ? [...new Set(backendItem.image_urls.map(rightsImageUrl).filter(Boolean))]
       : [],
   };
 }
@@ -812,17 +824,8 @@ const GasStationPage: React.FC = () => {
         {page === 'splash' ? (
           <div
             className="pit-splash"
-            style={{
-              backgroundImage: `url(${pitMainBg})`,
-            }}
           >
-            <button
-              type="button"
-              className="pit-splash-entry"
-              onClick={() => setPage('list')}
-              title="点击屏幕，进入维修区讯号系统"
-              aria-label="进入维修区讯号系统"
-            />
+            <PitEntrance mobile={stage.isMobile} onEnter={() => setPage('list')} />
           </div>
         ) : (
           <main
